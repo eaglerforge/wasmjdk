@@ -27,6 +27,7 @@
  #include <unistd.h>
  #include <sys/types.h>
  #include <sys/epoll.h>
+ #include <sys/eventfd.h>
 
 #include "jni.h"
 #include "jni_util.h"
@@ -57,7 +58,7 @@ Java_sun_nio_ch_EPoll_dataOffset(JNIEnv* env, jclass clazz)
 
 JNIEXPORT jint JNICALL
 Java_sun_nio_ch_EPoll_create(JNIEnv *env, jclass clazz) {
-    int epfd = epoll_create1(EPOLL_CLOEXEC);
+    int epfd = -1; //epoll_create1(EPOLL_CLOEXEC); //EMPATCH //TODO
     if (epfd < 0) {
         JNU_ThrowIOExceptionWithLastError(env, "epoll_create1 failed");
     }
@@ -74,7 +75,7 @@ Java_sun_nio_ch_EPoll_ctl(JNIEnv *env, jclass clazz, jint epfd,
     event.events = events;
     event.data.fd = fd;
 
-    res = epoll_ctl(epfd, (int)opcode, (int)fd, &event);
+    res = -1; //epoll_ctl(epfd, (int)opcode, (int)fd, &event); //EMPATCH //EMTODO
     return (res == 0) ? 0 : errno;
 }
 
@@ -83,7 +84,7 @@ Java_sun_nio_ch_EPoll_wait(JNIEnv *env, jclass clazz, jint epfd,
                            jlong address, jint numfds, jint timeout)
 {
     struct epoll_event *events = jlong_to_ptr(address);
-    int res = epoll_wait(epfd, events, numfds, timeout);
+    int res = -1; //epoll_wait(epfd, events, numfds, timeout); //EMPATCH //EMTODO
     if (res < 0) {
         if (errno == EINTR) {
             return IOS_INTERRUPTED;

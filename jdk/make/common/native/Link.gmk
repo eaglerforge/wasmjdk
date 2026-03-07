@@ -63,9 +63,12 @@ endef
 
 ################################################################################
 define CreateLinkedResult
+  $(shell echo "Creating linked result (internal)... #EMLOG" >&2)
   ifeq ($$($1_TYPE), STATIC_LIBRARY)
+    $(shell echo "Creating linked result (static variant)... #EMLOG" >&2)
     $$(eval $$(call CreateStaticLibrary,$1))
   else
+    $(shell echo "Creating linked result (dynamic variant)... #EMLOG" >&2)
     $$(eval $$(call CreateDynamicLibraryOrExecutable,$1))
   endif
 endef

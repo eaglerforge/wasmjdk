@@ -1,7 +1,7 @@
 #ifndef SYSINFO_SHIM_H
 #define SYSINFO_SHIM_H
 
-#include <cstdint>
+#include <stdint.h>
 
 struct sysinfo {
     long uptime;
@@ -18,7 +18,7 @@ struct sysinfo {
     unsigned int mem_unit;
 };
 
-int sysinfo(struct sysinfo *info) {
+static inline int sysinfo(struct sysinfo *info) {
     if (!info) {
         return -1;
     }

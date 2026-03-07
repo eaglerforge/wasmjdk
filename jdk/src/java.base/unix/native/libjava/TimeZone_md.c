@@ -41,6 +41,27 @@
 #include "TimeZone_md.h"
 #include "path_util.h"
 
+#include <emscripten.h>
+
+EM_JS(char*, getPlatformTimeZoneID, (), {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+    
+    const length = lengthBytesUTF8(tz) + 1;
+    const ptr = _malloc(length);
+    
+    stringToUTF8(tz, ptr, length);
+    
+    return ptr;
+  } catch (e) {
+    const fallback = "UTC";
+    const len = lengthBytesUTF8(fallback) + 1;
+    const p = _malloc(len);
+    stringToUTF8(fallback, p, len);
+    return p;
+  }
+});
+
 #define fileopen        fopen
 #define filegets        fgets
 #define fileclose       fclose

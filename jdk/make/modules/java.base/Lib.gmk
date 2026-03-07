@@ -160,7 +160,7 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBSYSLOOKUP, \
     NAME := syslookup, \
     EXTRA_HEADER_DIRS := java.base:libjava, \
     LD_SET_ORIGIN := false, \
-    LDFLAGS_linux := -Wl$(COMMA)--no-as-needed, \
+    LDFLAGS_linux := , \
     LDFLAGS_aix := -brtl -bexpfull, \
     LIBS_linux := $(LIBDL) $(LIBM), \
     LIBS_aix := -ldecNumber $(LIBM), \

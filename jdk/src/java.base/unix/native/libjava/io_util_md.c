@@ -30,12 +30,15 @@
 #include <string.h>
 #include <unistd.h>
 
-#if defined(__linux__) || defined(_ALLBSD_SOURCE) || defined(_AIX)
+#if defined(__linux__) || defined(_ALLBSD_SOURCE) || defined(_AIX) || defined(__EMSCRIPTEN__)
 #include <sys/ioctl.h>
 #endif
 
 #if defined(__linux__)
 #include <linux/fs.h>
+#endif
+
+#if defined(__linux__) || defined(__EMSCRIPTEN__)
 #include <sys/stat.h>
 #endif
 
@@ -54,7 +57,7 @@ jstring newStringPlatform(JNIEnv *env, const char* str)
         CFStringAppendCString(csref, str, kCFStringEncodingUTF8);
         CFStringNormalize(csref, kCFStringNormalizationFormC);
         int clen = CFStringGetLength(csref);
-        int ulen = (clen + 1) * 2;        // utf16 + zero padding
+        int ulen = (clen + 1) * 2; // utf16, zero padding
         char* chars = malloc(ulen);
         if (chars == NULL) {
             CFRelease(csref);
@@ -107,8 +110,7 @@ fileOpen(JNIEnv *env, jobject this, jstring path, jfieldID fid, int flags)
     WITH_PLATFORM_STRING(env, path, ps) {
         FD fd;
 
-#if defined(__linux__) || defined(_ALLBSD_SOURCE)
-        /* Remove trailing slashes, since the kernel won't */
+#if defined(__linux__) || defined(_ALLBSD_SOURCE) || defined(__EMSCRIPTEN__)
         char *p = (char *)ps + strlen(ps) - 1;
         while ((p > ps) && (*p == '/'))
             *p-- = '\0';
@@ -119,7 +121,6 @@ fileOpen(JNIEnv *env, jobject this, jstring path, jfieldID fid, int flags)
             jboolean append;
             fdobj = (*env)->GetObjectField(env, this, fid);
             if (fdobj != NULL) {
-                // Set FD
                 (*env)->SetIntField(env, fdobj, IO_fd_fdID, fd);
                 append = (flags & O_APPEND) == 0 ? JNI_FALSE : JNI_TRUE;
                 (*env)->SetBooleanField(env, fdobj, IO_append_fdID, append);
@@ -130,7 +131,6 @@ fileOpen(JNIEnv *env, jobject this, jstring path, jfieldID fid, int flags)
     } END_PLATFORM_STRING(env, ps);
 }
 
-// Function to close the fd held by this FileDescriptor and set fd to -1.
 void
 fileDescriptorClose(JNIEnv *env, jobject this)
 {
@@ -140,24 +140,12 @@ fileDescriptorClose(JNIEnv *env, jobject this)
     }
 
     if (fd == -1) {
-        return;     // already closed and set to -1
+        return;
     }
-
-    /* Set the fd to -1 before closing it so that the timing window
-     * of other threads using the wrong fd (closed but recycled fd,
-     * that gets re-opened with some other filename) is reduced.
-     * Practically the chance of its occurrence is low, however, we are
-     * taking extra precaution over here.
-     */
     (*env)->SetIntField(env, this, IO_fd_fdID, -1);
     if ((*env)->ExceptionCheck(env)) {
         return;
     }
-    /*
-     * Don't close file descriptors 0, 1, or 2. If we close these stream
-     * then a subsequent file open or socket will use them. Instead we
-     * just redirect these file descriptors to /dev/null.
-     */
     if (fd >= STDIN_FILENO && fd <= STDERR_FILENO) {
         int devnull = open("/dev/null", O_WRONLY);
         if (devnull < 0) {
@@ -170,7 +158,6 @@ fileDescriptorClose(JNIEnv *env, jobject this)
     } else {
         int result;
 #if defined(_AIX)
-        /* AIX allows close to be restarted after EINTR */
         RESTARTABLE(close(fd), result);
 #else
         result = close(fd);

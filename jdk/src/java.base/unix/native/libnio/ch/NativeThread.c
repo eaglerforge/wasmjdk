@@ -34,18 +34,7 @@
 #include <signal.h>
 #include <pthread.h>
 
-#ifdef __linux__
-  /* Also defined in net/linux_close.c */
-  #define INTERRUPT_SIGNAL (SIGRTMAX - 2)
-#elif defined(_AIX)
-  /* Also defined in net/aix_close.c */
-  #define INTERRUPT_SIGNAL (SIGRTMAX - 1)
-#elif defined(_ALLBSD_SOURCE)
-  /* Also defined in net/bsd_close.c */
-  #define INTERRUPT_SIGNAL SIGIO
-#else
-  #error "missing platform-specific definition here"
-#endif
+#define INTERRUPT_SIGNAL (SIGRTMAX - 2)
 
 static void
 nullHandler(int sig)

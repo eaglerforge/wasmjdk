@@ -72,7 +72,7 @@ JNIEXPORT jint JNICALL
 Java_sun_nio_fs_LinuxWatchService_inotifyInit
     (JNIEnv* env, jclass clazz)
 {
-    int ifd = inotify_init();
+    int ifd = -1; //inotify_init(); //EMPATCH //EMTODO
     if (ifd == -1) {
         throwUnixException(env, errno);
     }
@@ -86,7 +86,7 @@ Java_sun_nio_fs_LinuxWatchService_inotifyAddWatch
     int wfd = -1;
     const char* path = (const char*)jlong_to_ptr(address);
 
-    wfd = inotify_add_watch((int)fd, path, mask);
+    //wfd = inotify_add_watch((int)fd, path, mask); //EMPATCH //EMTODO
     if (wfd == -1) {
         throwUnixException(env, errno);
     }
@@ -97,7 +97,7 @@ JNIEXPORT void JNICALL
 Java_sun_nio_fs_LinuxWatchService_inotifyRmWatch
     (JNIEnv* env, jclass clazz, jint fd, jint wd)
 {
-    int err = inotify_rm_watch((int)fd, (int)wd);
+    int err = -1; //inotify_rm_watch((int)fd, (int)wd); //EMPATCH //EMTODO
     if (err == -1)
         throwUnixException(env, errno);
 }

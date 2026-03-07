@@ -12,6 +12,8 @@ int main() {
     JavaVMInitArgs vm_args;
     JavaVMOption options[2];
 
+    int x = 4;
+
     options[0].optionString = (char*)"-Djava.class.path=.";
 
     options[1].optionString = (char*)"--enable-native-access=ALL-UNNAMED";
@@ -20,6 +22,10 @@ int main() {
     vm_args.nOptions = 2;
     vm_args.options = options;
     vm_args.ignoreUnrecognized = false;
+
+    x = 7;
+
+    x = 3;
 
     jint res = JNI_CreateJavaVM(&jvm, (void**)&env, &vm_args);
     if (res != JNI_OK) {

@@ -75,6 +75,7 @@ define SetupBundleFileBody
 
   $$($1_OUTPUTDIR)/$$($1_BUNDLE_NAME): $$($1_FILES)
 	$$(call MakeTargetDir)
+  $(shell echo "Creating bundle #EMLOG" >&2)
 	$$(call LogWarn, Creating $$($1_BUNDLE_NAME))
         # If any of the files contain a space in the file name, FindFiles
         # will have replaced it with ?. Tar does not accept that so need to
@@ -149,6 +150,7 @@ define SetupBundleFileBody
         endif
 
   $1 += $$($1_OUTPUTDIR)/$$($1_BUNDLE_NAME)
+  $(shell echo "Created bundle #EMLOG" >&2)
 
 endef
 

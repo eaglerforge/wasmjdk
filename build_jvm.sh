@@ -1,3 +1,4 @@
+export SOURCE_DATE_EPOCH=315532802
 EMBIN=$(dirname $(which emcc))
 export SHIM_INCLUDES=$(pwd)"/patch_include/";
 export EMTOOLCHAIN=$(dirname $(which emcc))/../share/emscripten
@@ -39,7 +40,7 @@ if [ "$1" = "config" ]; then
     --disable-libffi-bundling \
     --without-cups --with-freetype=bundled --without-fontconfig \
     --with-alsa=bundled --with-libpng=bundled \
-    --with-native-debug-symbols=none \
+    --with-native-debug-symbols=internal \
     --enable-precompiled-headers=no --disable-warnings-as-errors \
     --with-extra-cflags="$CFLAGS" --with-extra-cxxflags="$CFLAGS" --with-extra-ldflags="$LDFLAGS" \
     --with-build-jdk="$BUILD_JDK" --with-boot-jdk="$BUILD_JDK" \
@@ -47,12 +48,15 @@ if [ "$1" = "config" ]; then
 else
   cp libffi/wasm_build/lib/libffi.a libffi/wasm_build/lib/libffi.so.0
   cd jdk
+
   find build/emscripten/support -type f -exec touch -t 202601010000.05 {} + #fix zip throwing timestamp errors
-  emmake make images emscripten DEBUG=info VERIFY_KERNELS=false CHECK_AND_PATCH_LIBRARIES=false && echo "JDK/JRE 25 cross-compiled to webassembly"
   
-  echo ""
+  #or LOG=info or LOG=trace. use SHELL="bash -x" for too many logs
+  emmake make images emscripten LOG=info && echo "JDK/JRE 25 cross-compiled to webassembly PERFECTLY"
+  
+  echo "."
   echo "Ignore the error, it is caused by a validation step in the makefile that cannot handle wasm binaries"
-  echo ""
+  echo "."
 
   rm -r ../wasmjdk_build/*
   mkdir -p ../wasmjdk_build/lib

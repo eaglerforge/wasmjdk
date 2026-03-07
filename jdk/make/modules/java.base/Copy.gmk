@@ -34,6 +34,8 @@ ifeq ($(call isTargetOs, aix), true)
   TZMAPPINGS_SRC := $(TOPDIR)/src/java.base/$(OPENJDK_TARGET_OS)/conf
 
   $(LIB_DST_DIR)/tzmappings: $(TZMAPPINGS_SRC)/tzmappings
+  
+  $(shell echo "AA #EMLOG" >&2)
 	$(call install-file)
 
   TARGETS += $(LIB_DST_DIR)/tzmappings

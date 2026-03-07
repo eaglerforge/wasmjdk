@@ -62,8 +62,11 @@ define add_file_to_copy
     $1_COPY_$$($2_TARGET) := 1
     # Now we can setup the dependency that will trigger the copying.
     $$($1_BIN)$$($1_MODULE_SUBDIR)$$($2_TARGET) : $2
+  $(shell echo "DoCopyLog... #EMLOG" >&2)
 	$$(call LogInfo, Copying $$(patsubst $$(OUTPUTDIR)/%,%, $$@))
+  $(shell echo "Installing... #EMLOG" >&2)
 	$$(install-file)
+  $(shell echo "Modifying permissions... #EMLOG" >&2)
 	$(CHMOD) -f ug+w $$@
 
     # And do not forget this target
@@ -398,13 +401,14 @@ define SetupJavaCompilationBody
     ifneq ($$($1_KEEP_ALL_TRANSLATIONS), true)
       $1_ALL_COPIES := $$(call FilterExcludedTranslations, $$($1_ALL_COPIES), .properties)
     endif
+    $(shell echo "Copying targets... #EMLOG" >&2)
     ifneq ($$($1_ALL_COPIES), )
       # Yep, there are files to be copied!
       $1_ALL_COPY_TARGETS :=
           $$(foreach i, $$($1_ALL_COPIES), $$(eval $$(call add_file_to_copy,$1,$$i)))
       # Now we can depend on $$($1_ALL_COPY_TARGETS) to copy all files!
     endif
-
+    $(shell echo "Copied targets... #EMLOG" >&2)
     # Find all property files to be copied and cleaned from source to bin.
     ifneq ($$($1_CLEAN)$$($1_CLEAN_FILES), )
       # Search for all files to be copied.
@@ -429,6 +433,7 @@ define SetupJavaCompilationBody
         # Now we can depend on $$($1_ALL_COPY_CLEAN_TARGETS) to copy all files!
       endif
     endif
+    $(shell echo "Cleaned out property files. #EMLOG" >&2)
 
     # Create a sed expression to remove the source roots and to replace / with .
     # and remove .java at the end.

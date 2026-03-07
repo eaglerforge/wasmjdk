@@ -1,12 +1,16 @@
+export SOURCE_DATE_EPOCH=315532802
 cd runner
 mkdir -p emcache
 export EMCACHE=$(pwd)"/emcache"
 cd ../docs
+unlink make
 rm -rf *
 echo $(pwd)
-emcc ../runner/main.cpp ../wasmjdk_build/lib/libjvm.a -pthread -I../wasmjdk_build/include/ -I../wasmjdk_build/include/linux/ -o jvm.js $(cat ../export_flags) -g4 -O0 -gsource-map -gseparate-dwarf -sINVOKE_RUN=0 -fdebug-compilation-dir='.' -sDEBUG_LEVEL=3 --emit-symbol-map -sSTRIP_METADATA=0 --profiling-funcs -fstandalone-debug -sSEPARATE_DWARF_URL="jvm.wasm.debug.wasm" \
+emcc ../runner/main.cpp ../wasmjdk_build/lib/libjvm.a -pthread -I../wasmjdk_build/include/ -I../wasmjdk_build/include/linux/ -o jvm.js $(cat ../export_flags) -g4 -O0 -gsource-map -gseparate-dwarf -sINVOKE_RUN=0 -fdebug-compilation-dir='.' --emit-symbol-map --profiling-funcs -fstandalone-debug -sSEPARATE_DWARF_URL="jvm.wasm.debug.wasm" \
 -s MODULARIZE=1 -s EXPORT_NAME='initJVM' \
 -s ALLOW_MEMORY_GROWTH=1
+
+ln -s make ../jdk
 
 cp ../runner/template/* .
 
@@ -30,3 +34,4 @@ done
 
 cp -r compiled/ ../../docs/compiled_tests
 cp tests.txt ../../docs/tests.txt
+
