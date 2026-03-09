@@ -55,6 +55,10 @@ static sigset_t jvmsigs; /* Signals used by jvm. */
 static __thread bool reentry = false; /* prevent reentry deadlock (per-thread) */
 #endif
 
+#ifdef __EMSCRIPTEN__
+static __thread bool jsig_reentry = false; 
+#endif
+
 /* Used to synchronize the installation of signal handlers. */
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
@@ -100,33 +104,23 @@ static void print_deprecation_warning() {
   }
 }
 
-static sa_handler_t call_os_signal(int sig, sa_handler_t disp,
-                                   bool is_sigset) {
+
+static sa_handler_t call_os_signal(int sig, sa_handler_t disp, bool is_sigset) {
   sa_handler_t res;
 
-  if (os_signal == NULL) {
-    if (!is_sigset) {
-      os_signal = (signal_function_t)dlsym(RTLD_NEXT, "signal");
-    } else {
-      os_signal = (signal_function_t)dlsym(RTLD_NEXT, "sigset");
-    }
-    if (os_signal == NULL) {
-      printf("%s\n", dlerror());
-      exit(0);
-    }
+  #ifdef __EMSCRIPTEN__
+  jsig_reentry = true;
+  #endif
+
+  if (!is_sigset) {
+    res = signal(sig, disp);
+  } else {
+    res = sigset(sig, disp);
   }
 
-#ifdef MACOSX
-  /* On macosx, the OS implementation of signal calls sigaction.
-   * Make sure we do not deadlock with ourself. (See JDK-8072147). */
-  reentry = true;
-#endif
-
-  res = (*os_signal)(sig, disp);
-
-#ifdef MACOSX
-  reentry = false;
-#endif
+  #ifdef __EMSCRIPTEN__
+  jsig_reentry = false;
+  #endif
 
   return res;
 }
@@ -209,14 +203,7 @@ JNIEXPORT sa_handler_t sigset(int sig, sa_handler_t disp) {
 
 static int call_os_sigaction(int sig, const struct sigaction  *act,
                              struct sigaction *oact) {
-  if (os_sigaction == NULL) {
-    os_sigaction = (sigaction_t)dlsym(RTLD_NEXT, "sigaction");
-    if (os_sigaction == NULL) {
-      printf("%s\n", dlerror());
-      exit(0);
-    }
-  }
-  return (*os_sigaction)(sig, act, oact);
+  return sigaction(sig, act, oact);
 }
 
 JNIEXPORT int sigaction(int sig, const struct sigaction *act, struct sigaction *oact) {
@@ -229,11 +216,17 @@ JNIEXPORT int sigaction(int sig, const struct sigaction *act, struct sigaction *
     return -1;
   }
 
-#ifdef MACOSX
+  #ifdef MACOSX
   if (reentry) {
     return call_os_sigaction(sig, act, oact);
   }
-#endif
+  #endif
+
+  #ifdef __EMSCRIPTEN__
+  if (jsig_reentry) {
+    return call_os_sigaction(sig, act, oact);
+  }
+  #endif
 
   signal_lock();
 

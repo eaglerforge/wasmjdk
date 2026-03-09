@@ -90,7 +90,7 @@ else
 
   
   JDK_TARGETS="java.base" #which native jdk dependencies to add. space-separated
-  JMOD_TARGETS="java.base,java.logging,java.xml" #which software jdk dependencies to add. comma-separated
+  JMOD_TARGETS="java.base,java.logging,java.xml,jdk.unsupported" #which software jdk dependencies to add. comma-separated
 
   for targ in $JDK_TARGETS; do
     find build/emscripten/support/native/$targ -name "*.o" >> monolith/objs.txt

@@ -91,6 +91,7 @@
 
 # include <signal.h>
 # include <errno.h>
+# include <iostream>
 
 OSThread*         os::_starting_thread    = nullptr;
 volatile unsigned int os::_rand_seed      = 1234567;
@@ -1515,7 +1516,7 @@ bool os::set_boot_path(char fileSep, char pathSep) {
 
   // modular image if "modules" jimage exists
   char* jimage = format_boot_path("%/lib/" MODULES_IMAGE_NAME, home, home_len, fileSep, pathSep);
-  std::cout << "Boot path: " << jimage << std::cerr;
+  log_info(os)("Boot path: %s", jimage);
   if (jimage == nullptr) return false;
   bool has_jimage = (os::stat(jimage, &st) == 0);
   if (has_jimage) {

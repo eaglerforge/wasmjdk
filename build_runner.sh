@@ -5,14 +5,16 @@ mkdir -p emcache
 export EMCACHE=$(pwd)"/emcache"
 cd ../docs
 unlink make/hotspot
+unlink make/src
 rm -rf *
 echo $(pwd)
-emcc ../runner/main.cpp ../wasmjdk_build/monolith/libjvm.a -L../libffi/wasm_build/lib/ -lffi -I../libffi/wasm_build/include/ -pthread -I../wasmjdk_build/monolith/include/ -I../wasmjdk_build/monolith/include/linux/ -o jvm.js $(cat ../export_flags) -g4 -O0 -gsource-map -gseparate-dwarf -sINVOKE_RUN=0 -fdebug-compilation-dir='.' --emit-symbol-map --profiling-funcs -fstandalone-debug -pthread -sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -Wl,--error-limit=0 -ferror-limit=0 -sSEPARATE_DWARF_URL="jvm.wasm.debug.wasm" \
+emcc ../runner/main.cpp ../wasmjdk_build/monolith/libjvm.a -sLIBRARY_DEBUG=1 -L../libffi/wasm_build/lib/ -lffi -I../libffi/wasm_build/include/ -pthread -I../wasmjdk_build/monolith/include/ -I../wasmjdk_build/monolith/include/linux/ -o jvm.js $(cat ../export_flags) -g4 -O0 -gsource-map -gseparate-dwarf -sINVOKE_RUN=0 -fdebug-compilation-dir='.' --emit-symbol-map --profiling-funcs -fstandalone-debug -pthread -sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -Wl,--error-limit=0 -ferror-limit=0 -sSEPARATE_DWARF_URL="jvm.wasm.debug.wasm" \
 -s MODULARIZE=1 -s EXPORT_NAME='initJVM' \
 -s ALLOW_MEMORY_GROWTH=1
 
 mkdir -p make
 ln -s ../../jdk/ ./make/hotspot
+ln -s ../../jdk/src/ ./make/src
 cp ../runner/template/* .
 
 rm -r ../runner/test/compiled

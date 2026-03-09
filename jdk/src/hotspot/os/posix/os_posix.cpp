@@ -806,7 +806,7 @@ void* os::get_default_process_handle() {
 }
 
 void* os::dll_lookup(void* handle, const char* name) {
-  log_debug(os)("Unsupported dll lookup. %s from: %s", name, tmp);
+  log_debug(os)("Unsupported dll lookup. %s from: %s", name);
   //EMUNSUPPORTED
   ::dlerror(); // Clear any previous error
   void* ret = ::dlsym(handle, name);

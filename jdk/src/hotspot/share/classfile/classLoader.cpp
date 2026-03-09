@@ -855,35 +855,13 @@ void ClassLoader::load_java_library() {
 
 void ClassLoader::load_jimage_library() {
   assert(JImageOpen == nullptr, "should not load jimage library twice");
-
-  if (is_vm_statically_linked()) {
-      JImageOpen = CAST_TO_FN_PTR(JImageOpen_t, os::lookup_function("JIMAGE_Open"));
-      JImageClose = CAST_TO_FN_PTR(JImageClose_t, os::lookup_function("JIMAGE_Close"));
-      JImageFindResource = CAST_TO_FN_PTR(JImageFindResource_t, os::lookup_function("JIMAGE_FindResource"));
-      JImageGetResource = CAST_TO_FN_PTR(JImageGetResource_t, os::lookup_function("JIMAGE_GetResource"));
-      assert(JImageOpen != nullptr && JImageClose != nullptr &&
-            JImageFindResource != nullptr && JImageGetResource != nullptr,
-            "could not lookup all jimage library functions");
-      return;
-    }
-
-  char path[JVM_MAXPATHLEN];
-  char ebuf[1024];
-  void* handle = nullptr;
-  if (os::dll_locate_lib(path, sizeof(path), Arguments::get_dll_dir(), "jimage")) {
-    handle = os::dll_load(path, ebuf, sizeof ebuf);
-  }
-  if (handle == nullptr) {
-    vm_exit_during_initialization("Unable to load jimage library", path);
-  }
-
-  JImageOpen = CAST_TO_FN_PTR(JImageOpen_t, dll_lookup(handle, "JIMAGE_Open", path));
-  JImageClose = CAST_TO_FN_PTR(JImageClose_t, dll_lookup(handle, "JIMAGE_Close", path));
-  JImageFindResource = CAST_TO_FN_PTR(JImageFindResource_t, dll_lookup(handle, "JIMAGE_FindResource", path));
-  JImageGetResource = CAST_TO_FN_PTR(JImageGetResource_t, dll_lookup(handle, "JIMAGE_GetResource", path));
+  JImageOpen = JIMAGE_Open;
+  JImageClose = JIMAGE_Close;
+  JImageFindResource = JIMAGE_FindResource;
+  JImageGetResource = JIMAGE_GetResource;
   assert(JImageOpen != nullptr && JImageClose != nullptr &&
         JImageFindResource != nullptr && JImageGetResource != nullptr,
-        "could not lookup all jimage library functions in jimage library");
+        "could not lookup all jimage library functions");
 }
 
 int ClassLoader::crc32(int crc, const char* buf, int len) {
