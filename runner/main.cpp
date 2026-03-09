@@ -10,22 +10,17 @@ int main() {
     JavaVM *jvm;
     JNIEnv *env;
     JavaVMInitArgs vm_args;
-    JavaVMOption options[2];
+    JavaVMOption options[3];
 
-    int x = 4;
-
-    options[0].optionString = (char*)"-Djava.class.path=.";
-
-    options[1].optionString = (char*)"--enable-native-access=ALL-UNNAMED";
+    //add java home, upload modules file, fix class path to a root-based path
+    options[0].optionString = (char*)"-Djava.class.path=/home/web_user/classes";
+    options[1].optionString = (char*)"--module-path=/home/web_user/wasmjdk/lib/modules";
+    options[2].optionString = (char*)"--enable-native-access=ALL-UNNAMED";
 
     vm_args.version = JNI_VERSION_21;
-    vm_args.nOptions = 2;
+    vm_args.nOptions = 3;
     vm_args.options = options;
     vm_args.ignoreUnrecognized = false;
-
-    x = 7;
-
-    x = 3;
 
     jint res = JNI_CreateJavaVM(&jvm, (void**)&env, &vm_args);
     if (res != JNI_OK) {

@@ -15,7 +15,7 @@ export AR=$EMTOOLCHAIN"/emar"
 export STRIP=true
 export NM=$EMTOOLCHAIN"/emnm"
 export INCL="-I"$SHIM_INCLUDES" -I"$LIBFFI_BUILD"/include";
-export CFLAGS="-O0 -g -gseparate-dwarf -gsource-map -fPIC -fvisibility=default -Wno-macro-redefined -Wno-undef -Wno-format -Wno-format-security -Wno-unused -Wno-unused-private-field -Wno-missing-braces -Wno-unused-function -Wno-bitwise-instead-of-logical -Wno-deprecated-declarations -Wno-unused-command-line-argument -sMAIN_MODULE=1 -sRELOCATABLE=1 "$INCL
+export CFLAGS="-sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -pthread -O0 -g -gseparate-dwarf -gsource-map -fPIC -fvisibility=default -Wno-macro-redefined -Wno-undef -Wno-format -Wno-format-security -Wno-unused -Wno-unused-private-field -Wno-missing-braces -Wno-unused-function -Wno-bitwise-instead-of-logical -Wno-deprecated-declarations -Wno-unused-command-line-argument -sMAIN_MODULE=1 -sRELOCATABLE=1 "$INCL
 export CXXFLAGS=$CFLAGS
 export LDFLAGS="-sRELOCATABLE=1 -Wno-unused-command-line-argument -sMAIN_MODULE=1 -fPIC -fvisibility=default -sERROR_ON_UNDEFINED_SYMBOLS=0 "$EXPOSE" --no-entry "
 export PRECOMPILED_HEADERS_AVAILABLE=false
@@ -86,6 +86,7 @@ else
   mkdir -p monolith
   mkdir -p monolith/include
   echo "" > monolith/objs.txt;
+  cp -r build/emscripten/jdk/include/* monolith/include/
 
   
   JDK_TARGETS="java.base" #which native jdk dependencies to add. space-separated
@@ -94,12 +95,12 @@ else
   for targ in $JDK_TARGETS; do
     find build/emscripten/support/native/$targ -name "*.o" >> monolith/objs.txt
     echo "Adding to monolithic build: $item"
-    cp build/emscripten/support/modules_include/$targ monolith/include/
+    cp -r build/emscripten/support/modules_include/$targ/* monolith/include/
   done
   echo "Adding libjvm to monolithic build:"
   find build/emscripten/hotspot/variant-zero/libjvm/objs -name "*.o" >> monolith/objs.txt
   
-  emar rcs monolith/libjvm_monolith.a @monolith/objs.txt #all the modules rolled into one
+  emar rcs monolith/libjvm.a @monolith/objs.txt #all the modules rolled into one
 
   echo "Copying .jmod files..."
   cp build/emscripten/images/jmods/*.jmod ../wasmjdk_build/jmod/

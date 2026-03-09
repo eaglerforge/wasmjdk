@@ -2681,7 +2681,7 @@ int jio_vsnprintf(char *str, size_t count, const char *fmt, va_list args) {
 }
 
 ATTRIBUTE_PRINTF(3, 4)
-int jio_snprintf(char *str, size_t count, const char *fmt, ...) {
+inline int jio_snprintf(char *str, size_t count, const char *fmt, ...) {
   va_list args;
   int len;
   va_start(args, fmt);
@@ -2691,7 +2691,7 @@ int jio_snprintf(char *str, size_t count, const char *fmt, ...) {
 }
 
 ATTRIBUTE_PRINTF(2, 3)
-int jio_fprintf(FILE* f, const char *fmt, ...) {
+inline int jio_fprintf(FILE* f, const char *fmt, ...) {
   int len;
   va_list args;
   va_start(args, fmt);
