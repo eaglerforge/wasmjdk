@@ -35,7 +35,6 @@ ifeq ($(call isTargetOs, aix), true)
 
   $(LIB_DST_DIR)/tzmappings: $(TZMAPPINGS_SRC)/tzmappings
   
-  $(shell echo "AA #EMLOG" >&2)
 	$(call install-file)
 
   TARGETS += $(LIB_DST_DIR)/tzmappings

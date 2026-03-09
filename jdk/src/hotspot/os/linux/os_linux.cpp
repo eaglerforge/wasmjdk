@@ -1645,13 +1645,11 @@ class VM_LinuxDllLoad: public VM_Operation {
 void * os::dll_load(const char *filename, char *ebuf, int ebuflen) {
   // EMPATCH
   // EMTODO
-  std::cerr << "Attempting unsupported DLL load!" << std::endl;
+  log_info(os)("attempting shared library load of %s", filename);
   return nullptr;
   void * result = nullptr;
   bool load_attempted = false;
-
-  log_info(os)("attempting shared library load of %s", filename);
-
+  
   // Check whether the library to load might change execution rights
   // of the stack. If they are changed, the protection of the stack
   // guard pages will be lost. We need a safepoint to fix this.

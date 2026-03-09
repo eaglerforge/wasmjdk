@@ -806,6 +806,8 @@ void* os::get_default_process_handle() {
 }
 
 void* os::dll_lookup(void* handle, const char* name) {
+  log_debug(os)("Unsupported dll lookup. %s from: %s", name, tmp);
+  //EMUNSUPPORTED
   ::dlerror(); // Clear any previous error
   void* ret = ::dlsym(handle, name);
   if (ret == nullptr) {
@@ -857,6 +859,7 @@ void os::dll_unload(void *lib) {
 }
 
 void* os::lookup_function(const char* name) {
+  log_info(os)("doing static lookup of %s", name);
   // This returns the global symbol in the main executable and its dependencies,
   // as well as shared objects dynamically loaded with RTLD_GLOBAL flag.
   return dlsym(RTLD_DEFAULT, name);

@@ -314,6 +314,7 @@ static void free_array_of_char_arrays(char** a, size_t n) {
 
 bool os::dll_locate_lib(char *buffer, size_t buflen,
                         const char* pname, const char* fname) {
+  log_debug(os)("Unsupported dll locate attempt: %s", fname);
   bool retval = false;
 
   size_t fullfnamelen = strlen(JNI_LIB_PREFIX) + strlen(fname) + strlen(JNI_LIB_SUFFIX);
