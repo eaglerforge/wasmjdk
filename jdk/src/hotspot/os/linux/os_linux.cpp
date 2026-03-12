@@ -2121,8 +2121,9 @@ static int dl_iterate_callback(struct dl_phdr_info *info, size_t size, void *dat
 }
 
 int os::get_loaded_modules_info(os::LoadedModulesCallbackFunc callback, void *param) {
-  struct loaded_modules_info_param callback_param = {callback, param};
-  return dl_iterate_phdr(&dl_iterate_callback, &callback_param);
+  return 0;
+  // struct loaded_modules_info_param callback_param = {callback, param};
+  // return dl_iterate_phdr(&dl_iterate_callback, &callback_param);
 }
 
 void os::print_os_info_brief(outputStream* st) {

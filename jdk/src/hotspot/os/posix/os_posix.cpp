@@ -549,15 +549,6 @@ void os::Posix::print_load_average(outputStream* st) {
 void os::Posix::print_uptime_info(outputStream* st) {
   int bootsec = -1;
   time_t currsec = time(nullptr);
-  struct utmpx* ent;
-  setutxent();
-  while ((ent = getutxent())) {
-    if (!strcmp("system boot", ent->ut_line)) {
-      bootsec = (int)ent->ut_tv.tv_sec;
-      break;
-    }
-  }
-
   if (bootsec != -1) {
     os::print_dhm(st, "OS uptime:", currsec-bootsec);
   }
@@ -806,7 +797,7 @@ void* os::get_default_process_handle() {
 }
 
 void* os::dll_lookup(void* handle, const char* name) {
-  log_debug(os)("Unsupported dll lookup. %s from: %s", name, tmp);
+  log_debug(os)("OS dll lookup: %s", name);
   //EMUNSUPPORTED
   ::dlerror(); // Clear any previous error
   void* ret = ::dlsym(handle, name);

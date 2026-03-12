@@ -34,5 +34,6 @@
         xorg.libXrender
         xorg.libXrandr
         xorg.xorgproto
+        wabt
     ];
 }

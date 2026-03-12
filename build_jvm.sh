@@ -14,8 +14,8 @@ export LD=$( [ "$SHIMLD" = "true" ] && echo -n $(pwd)"/ldshim.sh" || echo -n $CC
 export AR=$EMTOOLCHAIN"/emar"
 export STRIP=true
 export NM=$EMTOOLCHAIN"/emnm"
-export INCL="-I"$SHIM_INCLUDES" -I"$LIBFFI_BUILD"/include";
-export CFLAGS="-sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -pthread -O0 -g -gseparate-dwarf -gsource-map -fPIC -fvisibility=default -Wno-macro-redefined -Wno-undef -Wno-format -Wno-format-security -Wno-unused -Wno-unused-private-field -Wno-missing-braces -Wno-unused-function -Wno-bitwise-instead-of-logical -Wno-deprecated-declarations -Wno-unused-command-line-argument -sMAIN_MODULE=1 -sRELOCATABLE=1 "$INCL
+export INCL="-I"$SHIM_INCLUDES" -I"$LIBFFI_BUILD"/include ";
+export CFLAGS="-DVM_LITTLE_ENDIAN -sMAIN_MODULE=1 -sRELOCATABLE=1 -sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -pthread -O0 -g -gseparate-dwarf -gsource-map -fPIC -fno-direct-access-external-data -fvisibility=default -Wno-macro-redefined -Wno-undef -Wno-format -Wno-format-security -Wno-unused -Wno-unused-private-field -Wno-missing-braces -Wno-unused-function -Wno-bitwise-instead-of-logical -Wno-deprecated-declarations -Wno-unused-command-line-argument -sMAIN_MODULE=1 -sRELOCATABLE=1 -DSTATIC_BUILD=1 "$INCL
 export CXXFLAGS=$CFLAGS
 export LDFLAGS="-sRELOCATABLE=1 -Wno-unused-command-line-argument -sMAIN_MODULE=1 -fPIC -fvisibility=default -sERROR_ON_UNDEFINED_SYMBOLS=0 "$EXPOSE" --no-entry "
 export PRECOMPILED_HEADERS_AVAILABLE=false
@@ -36,6 +36,11 @@ if [ "$1" = "config" ]; then
     --with-tools-dir=$EMTOOLCHAIN \
     --openjdk-target=i686-unknown-linux-gnu \
     --with-jvm-variants=zero \
+    --with-jvm-features=serialgc,services,management,cds,jvmti \
+    --disable-jvm-feature-shenandoahgc \
+    --disable-jvm-feature-g1gc \
+    --disable-jvm-feature-epsilongc \
+    --disable-jvm-feature-parallelgc \
     --with-libffi-include="$LIBFFI_BUILD"/include \
     --with-libffi-lib="$LIBFFI_BUILD"/lib \
     --disable-libffi-bundling \
@@ -63,10 +68,12 @@ else
   echo ""
   sleep 1.5
 
-  if [ "$SHIMLD" = "true" ]; then
-    emmake make -k images emscripten LOG=info LD=$LD LDCXX=$LD
-  else
-    emmake make -k images emscripten LOG=info
+  if [ "$2" != "skip" ]; then
+    if [ "$SHIMLD" = "true" ]; then
+      emmake make -k images emscripten LOG=info LD=$LD LDCXX=$LD
+    else
+      emmake make -k images emscripten LOG=info
+    fi;
   fi
   
   echo "."
@@ -93,13 +100,15 @@ else
   JMOD_TARGETS="java.base,java.logging,java.xml" #which software jdk dependencies to add. comma-separated
 
   for targ in $JDK_TARGETS; do
-    find build/emscripten/support/native/$targ -name "*.o" >> monolith/objs.txt
+    find build/emscripten/support/native/$targ -name "*.o" | grep -v "jsig.o" >> monolith/objs.txt
     echo "Adding to monolithic build: $item"
     cp -r build/emscripten/support/modules_include/$targ/* monolith/include/
   done
   echo "Adding libjvm to monolithic build:"
-  find build/emscripten/hotspot/variant-zero/libjvm/objs -name "*.o" >> monolith/objs.txt
+  find build/emscripten/hotspot/variant-zero/libjvm/objs -name "*.o" | grep -v "jsig.o" >> monolith/objs.txt
   
+  #sort -u monolith/objs.txt -o monolith/objs.txt #dedupe opbject files
+
   emar rcs monolith/libjvm.a @monolith/objs.txt #all the modules rolled into one
 
   echo "Copying .jmod files..."
@@ -128,4 +137,7 @@ else
   cp -r monolith/ ../wasmjdk_build/
   rm -r monolith/
   echo "Done! check the wasmjdk_build folder."
-fi
+
+  echo "Dumping Compiler Error Logs: ";
+  echo $(cat build/emscripten/build.log | grep -A 3 -E "\.[ch](pp|xx|cc)?:[0-9]+:[0-9]+: error:")
+fi;

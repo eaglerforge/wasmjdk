@@ -114,8 +114,8 @@ static jobject createNetworkInterface(JNIEnv *env, netif *ifs);
 static int     getFlags0(JNIEnv *env, jstring  ifname);
 
 static netif  *enumInterfaces(JNIEnv *env);
-static netif  *enumIPv4Interfaces(JNIEnv *env, int sock, netif *ifs);
-static netif  *enumIPv6Interfaces(JNIEnv *env, int sock, netif *ifs);
+netif  *enumIPv4Interfaces(JNIEnv *env, int sock, netif *ifs);
+netif  *enumIPv6Interfaces(JNIEnv *env, int sock, netif *ifs);
 
 static netif  *addif(JNIEnv *env, int sock, const char *if_name, netif *ifs,
                      struct sockaddr *ifr_addrP,
@@ -124,16 +124,16 @@ static netif  *addif(JNIEnv *env, int sock, const char *if_name, netif *ifs,
 static void    freeif(netif *ifs);
 
 static int     openSocket(JNIEnv *env, int proto);
-static int     openSocketWithFallback(JNIEnv *env, const char *ifname);
+int     openSocketWithFallback(JNIEnv *env, const char *ifname);
 
 static short   translateIPv4AddressToPrefix(struct sockaddr_in *addr);
 static short   translateIPv6AddressToPrefix(struct sockaddr_in6 *addr);
 
 static int     getIndex(int sock, const char *ifname);
-static int     getFlags(int sock, const char *ifname, int *flags);
-static int     getMacAddress(JNIEnv *env, const char *ifname,
+int     getFlags(int sock, const char *ifname, int *flags);
+int     getMacAddress(JNIEnv *env, const char *ifname,
                              const struct in_addr *addr, unsigned char *buf);
-static int     getMTU(JNIEnv *env, int sock, const char *ifname);
+int     getMTU(JNIEnv *env, int sock, const char *ifname);
 
 /******************* Java entry points *****************************/
 
@@ -1145,7 +1145,7 @@ static int openSocket(JNIEnv *env, int proto) {
  * Opens a socket for further ioctl calls. Tries AF_INET socket first and
  * if it fails return AF_INET6 socket.
  */
-static int openSocketWithFallback(JNIEnv *env, const char *ifname) {
+int openSocketWithFallback(JNIEnv *env, const char *ifname) {
     int sock;
 
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -1170,7 +1170,7 @@ static int openSocketWithFallback(JNIEnv *env, const char *ifname) {
 /*
  * Enumerates and returns all IPv4 interfaces on Linux.
  */
-static netif *enumIPv4Interfaces(JNIEnv *env, int sock, netif *ifs) {
+netif *enumIPv4Interfaces(JNIEnv *env, int sock, netif *ifs) {
     struct ifconf ifc;
     struct ifreq *ifreqP;
     char *buf = NULL;
@@ -1252,7 +1252,7 @@ static netif *enumIPv4Interfaces(JNIEnv *env, int sock, netif *ifs) {
 /*
  * Enumerates and returns all IPv6 interfaces on Linux.
  */
-static netif *enumIPv6Interfaces(JNIEnv *env, int sock, netif *ifs) {
+netif *enumIPv6Interfaces(JNIEnv *env, int sock, netif *ifs) {
     FILE *f;
     char devname[21], addr6p[8][5];
     int prefix, scope, dad_status, if_idx;
@@ -1311,7 +1311,7 @@ static int getIndex(int sock, const char *name) {
  * On return puts the data in buf, and returns the length, in byte, of the
  * MAC address. Returns -1 if there is no hardware address on that interface.
  */
-static int getMacAddress
+int getMacAddress
   (JNIEnv *env, const char *ifname, const struct in_addr *addr,
    unsigned char *buf)
 {
@@ -1343,7 +1343,7 @@ static int getMacAddress
     return -1;
 }
 
-static int getMTU(JNIEnv *env, int sock, const char *ifname) {
+int getMTU(JNIEnv *env, int sock, const char *ifname) {
     struct ifreq if2;
     memset((char *)&if2, 0, sizeof(if2));
     strncpy(if2.ifr_name, ifname, sizeof(if2.ifr_name) - 1);
@@ -1357,7 +1357,7 @@ static int getMTU(JNIEnv *env, int sock, const char *ifname) {
     return if2.ifr_mtu;
 }
 
-static int getFlags(int sock, const char *ifname, int *flags) {
+int getFlags(int sock, const char *ifname, int *flags) {
     struct ifreq if2;
     memset((char *)&if2, 0, sizeof(if2));
     strncpy(if2.ifr_name, ifname, sizeof(if2.ifr_name));
@@ -1388,7 +1388,7 @@ int getkerninfo(int, char *, int *, int32long64_t);
  * Opens a socket for further ioctl calls. Tries AF_INET socket first and
  * if it fails return AF_INET6 socket.
  */
-static int openSocketWithFallback(JNIEnv *env, const char *ifname) {
+int openSocketWithFallback(JNIEnv *env, const char *ifname) {
     int sock;
 
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -1411,7 +1411,7 @@ static int openSocketWithFallback(JNIEnv *env, const char *ifname) {
 /*
  * Enumerates and returns all IPv4 interfaces on AIX.
  */
-static netif *enumIPv4Interfaces(JNIEnv *env, int sock, netif *ifs) {
+netif *enumIPv4Interfaces(JNIEnv *env, int sock, netif *ifs) {
     struct ifconf ifc;
     struct ifreq *ifreqP;
     char *buf = NULL;
@@ -1493,7 +1493,7 @@ static netif *enumIPv4Interfaces(JNIEnv *env, int sock, netif *ifs) {
 /*
  * Enumerates and returns all IPv6 interfaces on AIX.
  */
-static netif *enumIPv6Interfaces(JNIEnv *env, int sock, netif *ifs) {
+netif *enumIPv6Interfaces(JNIEnv *env, int sock, netif *ifs) {
     struct ifconf ifc;
     struct ifreq *ifreqP;
     char *buf, *cp, *cplimit;
@@ -1577,7 +1577,7 @@ static int getIndex(int sock, const char *name) {
  * On return puts the data in buf, and returns the length, in byte, of the
  * MAC address. Returns -1 if there is no hardware address on that interface.
  */
-static int getMacAddress
+int getMacAddress
   (JNIEnv *env, const char *ifname, const struct in_addr *addr,
    unsigned char *buf)
 {
@@ -1625,7 +1625,7 @@ static int getMacAddress
     return -1;
 }
 
-static int getMTU(JNIEnv *env, int sock, const char *ifname) {
+int getMTU(JNIEnv *env, int sock, const char *ifname) {
     struct ifreq if2;
     memset((char *)&if2, 0, sizeof(if2));
     strncpy(if2.ifr_name, ifname, sizeof(if2.ifr_name) - 1);
@@ -1639,7 +1639,7 @@ static int getMTU(JNIEnv *env, int sock, const char *ifname) {
     return if2.ifr_mtu;
 }
 
-static int getFlags(int sock, const char *ifname, int *flags) {
+int getFlags(int sock, const char *ifname, int *flags) {
     struct ifreq if2;
     memset((char *)&if2, 0, sizeof(if2));
     strncpy(if2.ifr_name, ifname, sizeof(if2.ifr_name) - 1);
@@ -1665,7 +1665,7 @@ static int getFlags(int sock, const char *ifname, int *flags) {
  * Opens a socket for further ioctl calls. Tries AF_INET socket first and
  * if it fails return AF_INET6 socket.
  */
-static int openSocketWithFallback(JNIEnv *env, const char *ifname) {
+int openSocketWithFallback(JNIEnv *env, const char *ifname) {
     int sock;
 
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -1688,7 +1688,7 @@ static int openSocketWithFallback(JNIEnv *env, const char *ifname) {
 /*
  * Enumerates and returns all IPv4 interfaces on BSD.
  */
-static netif *enumIPv4Interfaces(JNIEnv *env, int sock, netif *ifs) {
+netif *enumIPv4Interfaces(JNIEnv *env, int sock, netif *ifs) {
     struct ifaddrs *ifa, *origifa;
 
     if (getifaddrs(&origifa) != 0) {
@@ -1732,7 +1732,7 @@ static netif *enumIPv4Interfaces(JNIEnv *env, int sock, netif *ifs) {
 /*
  * Enumerates and returns all IPv6 interfaces on BSD.
  */
-static netif *enumIPv6Interfaces(JNIEnv *env, int sock, netif *ifs) {
+netif *enumIPv6Interfaces(JNIEnv *env, int sock, netif *ifs) {
     struct ifaddrs *ifa, *origifa;
 
     if (getifaddrs(&origifa) != 0) {
@@ -1794,7 +1794,7 @@ static int getIndex(int sock, const char *name) {
  * On return puts the data in buf, and returns the length, in byte, of the
  * MAC address. Returns -1 if there is no hardware address on that interface.
  */
-static int getMacAddress
+int getMacAddress
   (JNIEnv *env, const char *ifname, const struct in_addr *addr,
    unsigned char *buf)
 {
@@ -1826,7 +1826,7 @@ static int getMacAddress
     return -1;
 }
 
-static int getMTU(JNIEnv *env, int sock, const char *ifname) {
+int getMTU(JNIEnv *env, int sock, const char *ifname) {
     struct ifreq if2;
     memset((char *)&if2, 0, sizeof(if2));
     strncpy(if2.ifr_name, ifname, sizeof(if2.ifr_name) - 1);
@@ -1840,7 +1840,7 @@ static int getMTU(JNIEnv *env, int sock, const char *ifname) {
     return if2.ifr_mtu;
 }
 
-static int getFlags(int sock, const char *ifname, int *flags) {
+int getFlags(int sock, const char *ifname, int *flags) {
     struct ifreq if2;
     memset((char *)&if2, 0, sizeof(if2));
     strncpy(if2.ifr_name, ifname, sizeof(if2.ifr_name) - 1);

@@ -7,13 +7,16 @@
     <style>
         @font-face {
             font-family: 'unscii';
-            src: url('unscii-8.woff') format('woff');
+            src: url('unifont.otf') format('otf');
             font-weight: lighter;
             font-style: normal;
             font-display: swap;
         }
         * {
             font-family: 'unscii';
+        }
+        #output {
+            border: 1px solid black;
         }
     </style>
 </head>
@@ -22,10 +25,23 @@
     <p>Experimental web port of OpenJDK 25 Zero Variant.</p>
     <script src="jvm.js"></script>
     <select id="test"></select><button id="runtest">run</button>
+    <br>
+    <span id="output"></span>
     <script>
         (async function () {
+            const buildInfo = await (await fetch("rt/rt.info")).text();
+            const out = document.querySelector("#output");
+            out.innerHTML = buildInfo.replaceAll("\n", "<br>");
             const JVM = await initJVM();
             globalThis.JVM = JVM;
+
+            const rt = new Uint8Array(await (await fetch("rt/modules")).arrayBuffer());
+            JVM.FS.mkdirTree("/home/web_user/classes");
+            JVM.FS.mkdirTree("/home/web_user/lib");
+            JVM.FS.mkdirTree("/lib");
+            JVM.FS.writeFile("/home/web_user/lib/modules", rt);
+            JVM.FS.writeFile("/lib/modules", rt);
+
             const testSelector = document.querySelector("#test");
             const testDB = (await (await fetch("tests.txt")).text()).split("\n").map(x => x.trim()).filter(x => x && !x.startsWith("#"));
             testDB.reverse();

@@ -76,9 +76,9 @@ ifeq ($(call isTargetOs, linux), true)
     # files.
     NONPIC_SRC := $(filter $(NONPIC_FILTER), $(ALL_SRC)) globals.cpp location.cpp
     # Declare variables for each source file that needs the pic flag like this:
-    # BUILD_JVM_<srcfile>_CXXFLAGS := -fno-PIC
+    # BUILD_JVM_<srcfile>_CXXFLAGS := 
     # This will get implicitly picked up by SetupJdkLibrary below.
-    $(foreach s, $(NONPIC_SRC), $(eval BUILD_LIBJVM_$(notdir $s)_CXXFLAGS := -fno-PIC))
+    $(foreach s, $(NONPIC_SRC), $(eval BUILD_LIBJVM_$(notdir $s)_CXXFLAGS := ))
   endif
 
 else ifeq ($(call isTargetOs, macosx), true)
