@@ -2915,33 +2915,34 @@ static void warn_fail_commit_memory(char* addr, size_t size,
 //       left at the time of mmap(). This could be a potential
 //       problem.
 int os::Linux::commit_memory_impl(char* addr, size_t size, bool exec) {
-  int prot = exec ? PROT_READ|PROT_WRITE|PROT_EXEC : PROT_READ|PROT_WRITE;
-  uintptr_t res = (uintptr_t) ::mmap(addr, size, prot,
-                                     MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0);
-  if (res != (uintptr_t) MAP_FAILED) {
-    if (UseNUMAInterleaving) {
-      numa_make_global(addr, size);
-    }
-    return 0;
-  } else {
-    ErrnoPreserver ep;
-    log_trace(os, map)("mmap failed: " RANGEFMT " errno=(%s)",
-                       RANGEFMTARGS(addr, size),
-                       os::strerror(ep.saved_errno()));
-  }
+  return 0; //EMPATCH
+  // int prot = exec ? PROT_READ|PROT_WRITE|PROT_EXEC : PROT_READ|PROT_WRITE;
+  // uintptr_t res = (uintptr_t) ::mmap(addr, size, prot,
+  //                                    MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0);
+  // if (res != (uintptr_t) MAP_FAILED) {
+  //   if (UseNUMAInterleaving) {
+  //     numa_make_global(addr, size);
+  //   }
+  //   return 0;
+  // } else {
+  //   ErrnoPreserver ep;
+  //   log_trace(os, map)("mmap failed: " RANGEFMT " errno=(%s)",
+  //                      RANGEFMTARGS(addr, size),
+  //                      os::strerror(ep.saved_errno()));
+  // }
 
-  int err = errno;  // save errno from mmap() call above
+  // int err = errno;  // save errno from mmap() call above
 
-  if (!recoverable_mmap_error(err)) {
-    ErrnoPreserver ep;
-    log_trace(os, map)("mmap failed: " RANGEFMT " errno=(%s)",
-                       RANGEFMTARGS(addr, size),
-                       os::strerror(ep.saved_errno()));
-    warn_fail_commit_memory(addr, size, exec, err);
-    vm_exit_out_of_memory(size, OOM_MMAP_ERROR, "committing reserved memory.");
-  }
+  // if (!recoverable_mmap_error(err)) {
+  //   ErrnoPreserver ep;
+  //   log_trace(os, map)("mmap failed: " RANGEFMT " errno=(%s)",
+  //                      RANGEFMTARGS(addr, size),
+  //                      os::strerror(ep.saved_errno()));
+  //   warn_fail_commit_memory(addr, size, exec, err);
+  //   vm_exit_out_of_memory(size, OOM_MMAP_ERROR, "committing reserved memory.");
+  // }
 
-  return err;
+  // return err;
 }
 
 bool os::pd_commit_memory(char* addr, size_t size, bool exec) {
@@ -3181,17 +3182,11 @@ int os::Linux::sched_getcpu_syscall(void) {
 
 void os::Linux::sched_getcpu_init() {
   // sched_getcpu() should be in libc.
-  set_sched_getcpu(CAST_TO_FN_PTR(sched_getcpu_func_t,
-                                  dlsym(RTLD_DEFAULT, "sched_getcpu")));
-
-  // If it's not, try a direct syscall.
-  if (sched_getcpu() == -1) {
-    set_sched_getcpu(CAST_TO_FN_PTR(sched_getcpu_func_t,
-                                    (void*)&sched_getcpu_syscall));
-  }
+  //set_sched_getcpu(sched_getcpu);
 
   if (sched_getcpu() == -1) {
-    vm_exit_during_initialization("getcpu(2) system call not supported by kernel");
+    // EMPATCH
+    //vm_exit_during_initialization("getcpu(2) system call not supported by kernel");
   }
 }
 
@@ -3202,6 +3197,7 @@ extern "C" JNIEXPORT void numa_error(char *where) { }
 // Handle request to load libnuma symbol version 1.1 (API v1). If it fails
 // load symbol from base version instead.
 void* os::Linux::libnuma_dlsym(void* handle, const char *name) {
+  log_debug(os)("libnuma dlsym shimmed, for symbol: ", name); //E2CHK@
   return nullptr; //EMPATCH
   // void *f = dlvsym(handle, name, "libnuma_1.1");
   // if (f == nullptr) {
@@ -4423,7 +4419,7 @@ void os::init(void) {
   Linux::initialize_system_info();
 
 #ifdef __GLIBC__
-  g_mallinfo = CAST_TO_FN_PTR(mallinfo_func_t, dlsym(RTLD_DEFAULT, "mallinfo"));
+  g_mallinfo = CAST_TO_FN_PTR(mallinfo_func_t, dlsym(RTLD_DEFAULT, ""));
   g_mallinfo2 = CAST_TO_FN_PTR(mallinfo2_func_t, dlsym(RTLD_DEFAULT, "mallinfo2"));
   g_malloc_info = CAST_TO_FN_PTR(malloc_info_func_t, dlsym(RTLD_DEFAULT, "malloc_info"));
 #endif // __GLIBC__
@@ -4440,9 +4436,9 @@ void os::init(void) {
   // _main_thread points to the thread that created/loaded the JVM.
   Linux::_main_thread = pthread_self();
 
-  // retrieve entry point for pthread_setname_np
-  Linux::_pthread_setname_np =
-    (int(*)(pthread_t, const char*))dlsym(RTLD_DEFAULT, "pthread_setname_np");
+  // retrieve entry point for pthread_setname_np //EMPATCH, //EMUNSUPPORTED
+  //Linux::_pthread_setname_np =
+  //  (int(*)(pthread_t, const char*))pthread_setname_np;
 
   check_pax();
 

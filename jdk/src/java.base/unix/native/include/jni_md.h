@@ -38,7 +38,7 @@
       #define JNIEXPORT     __attribute__((visibility("default")))
     #endif
   #else
-    #define JNIEXPORT
+    #define JNIEXPORT      __attribute__((visibility("default")))
   #endif
 #endif
 
@@ -49,7 +49,7 @@
     #define JNIIMPORT     __attribute__((visibility("default")))
   #endif
 #else
-  #define JNIIMPORT
+  #define JNIIMPORT       __attribute__((visibility("default")))
 #endif
 
 typedef int jint;

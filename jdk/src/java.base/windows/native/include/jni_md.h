@@ -27,9 +27,9 @@
 #define _JAVASOFT_JNI_MD_H_
 
 #ifndef JNIEXPORT
-  #define JNIEXPORT __declspec(dllexport)
+  #define JNIEXPORT __attribute__((visibility("default")))
 #endif
-#define JNIIMPORT __declspec(dllimport)
+#define JNIIMPORT __attribute__((visibility("default")))
 
 typedef int jint;
 typedef long long jlong;

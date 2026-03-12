@@ -252,6 +252,9 @@ static address lookup_special_native(const char* jni_name) {
 address NativeLookup::lookup_style(const methodHandle& method, char* pure_name, const char* long_name, int args_size, TRAPS) {
   address entry;
   const char* jni_name = compute_complete_jni_name(pure_name, long_name, args_size);
+  log_info(os)("Searching for native JNI: ", jni_name);
+  //EMTODO
+  
 
 
   // If the loader is null we have a system class, so we attempt a lookup in

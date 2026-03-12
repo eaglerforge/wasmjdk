@@ -516,34 +516,35 @@ extern struct JavaVM_ main_vm;
 static void* _native_java_library = nullptr;
 
 void* os::native_java_library() {
-  if (_native_java_library == nullptr) {
-    if (is_vm_statically_linked()) {
-      _native_java_library = get_default_process_handle();
-      return _native_java_library;
-    }
+  return nullptr;
+//   if (_native_java_library == nullptr) {
+//     if (is_vm_statically_linked()) {
+//       _native_java_library = get_default_process_handle();
+//       return _native_java_library;
+//     }
 
-    char buffer[JVM_MAXPATHLEN];
-    char ebuf[1024];
+//     char buffer[JVM_MAXPATHLEN];
+//     char ebuf[1024];
 
-    // Load java dll
-    if (dll_locate_lib(buffer, sizeof(buffer), Arguments::get_dll_dir(),
-                       "java")) {
-      _native_java_library = dll_load(buffer, ebuf, sizeof(ebuf));
-    }
-    if (_native_java_library == nullptr) {
-      vm_exit_during_initialization("Unable to load native library", ebuf);
-    }
+//     // Load java dll
+//     if (dll_locate_lib(buffer, sizeof(buffer), Arguments::get_dll_dir(),
+//                        "java")) {
+//       _native_java_library = dll_load(buffer, ebuf, sizeof(ebuf));
+//     }
+//     if (_native_java_library == nullptr) {
+//       vm_exit_during_initialization("Unable to load native library", ebuf);
+//     }
 
-#if defined(__OpenBSD__)
-    // Work-around OpenBSD's lack of $ORIGIN support by pre-loading libnet.so
-    // ignore errors
-    if (dll_locate_lib(buffer, sizeof(buffer), Arguments::get_dll_dir(),
-                       "net")) {
-      dll_load(buffer, ebuf, sizeof(ebuf));
-    }
-#endif
-  }
-  return _native_java_library;
+// #if defined(__OpenBSD__)
+//     // Work-around OpenBSD's lack of $ORIGIN support by pre-loading libnet.so
+//     // ignore errors
+//     if (dll_locate_lib(buffer, sizeof(buffer), Arguments::get_dll_dir(),
+//                        "net")) {
+//       dll_load(buffer, ebuf, sizeof(ebuf));
+//     }
+// #endif
+//   }
+//   return _native_java_library;
 }
 
 /*

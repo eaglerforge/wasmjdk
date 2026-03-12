@@ -1,6 +1,7 @@
 SHIMLD=false #use a fake linker that never returns errors
 export SOURCE_DATE_EPOCH=315532802
 EMBIN=$(dirname $(which emcc))
+MAINDIR=$(pwd)
 export SHIM_INCLUDES=$(pwd)"/patch_include/";
 export EMTOOLCHAIN=$(dirname $(which emcc))/../share/emscripten
 # make sure youve built libffi
@@ -14,8 +15,8 @@ export LD=$( [ "$SHIMLD" = "true" ] && echo -n $(pwd)"/ldshim.sh" || echo -n $CC
 export AR=$EMTOOLCHAIN"/emar"
 export STRIP=true
 export NM=$EMTOOLCHAIN"/emnm"
-export INCL="-I"$SHIM_INCLUDES" -I"$LIBFFI_BUILD"/include";
-export CFLAGS="-sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -pthread -O0 -g -gseparate-dwarf -gsource-map -fPIC -fvisibility=default -Wno-macro-redefined -Wno-undef -Wno-format -Wno-format-security -Wno-unused -Wno-unused-private-field -Wno-missing-braces -Wno-unused-function -Wno-bitwise-instead-of-logical -Wno-deprecated-declarations -Wno-unused-command-line-argument -sMAIN_MODULE=1 -sRELOCATABLE=1 "$INCL
+export INCL="-I"$SHIM_INCLUDES" -I"$LIBFFI_BUILD"/include ";
+export CFLAGS="-sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -pthread -O0 -g -gseparate-dwarf -gsource-map -fPIC -fvisibility=default -Wno-macro-redefined -Wno-undef -Wno-format -Wno-format-security -Wno-unused -Wno-unused-private-field -Wno-missing-braces -Wno-unused-function -Wno-bitwise-instead-of-logical -Wno-deprecated-declarations -Wno-unused-command-line-argument -sMAIN_MODULE=1 -sRELOCATABLE=1 -Werror=incompatible-pointer-types -Werror=implicit-function-declaration "$INCL
 export CXXFLAGS=$CFLAGS
 export LDFLAGS="-sRELOCATABLE=1 -Wno-unused-command-line-argument -sMAIN_MODULE=1 -fPIC -fvisibility=default -sERROR_ON_UNDEFINED_SYMBOLS=0 "$EXPOSE" --no-entry "
 export PRECOMPILED_HEADERS_AVAILABLE=false
@@ -128,4 +129,7 @@ else
   cp -r monolith/ ../wasmjdk_build/
   rm -r monolith/
   echo "Done! check the wasmjdk_build folder."
+
+  echo "Dumping Compiler Error Logs: "
+  echo $(cat build/emscripten/build.log | grep -A 3 -E "\.[ch](pp|xx|cc)?:[0-9]+:[0-9]+: error:")
 fi

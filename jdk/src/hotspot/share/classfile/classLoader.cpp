@@ -83,6 +83,10 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+//EMINCLUDE
+#include "../../../java.base/share/native/libjava/jdk_util.h"
+#include "../../../java.base/share/native/libjava/jni_util.h"
+
 // Entry point in java.dll for path canonicalization
 
 typedef int (*canonicalize_fn_t)(const char *orig, char *out, int len);
@@ -838,11 +842,9 @@ void* ClassLoader::dll_lookup(void* lib, const char* name, const char* path) {
 
 void ClassLoader::load_java_library() {
   assert(CanonicalizeEntry == nullptr, "should not load java library twice");
-  if (is_vm_statically_linked()) {
-    CanonicalizeEntry = CAST_TO_FN_PTR(canonicalize_fn_t, os::lookup_function("JDK_Canonicalize"));
-    assert(CanonicalizeEntry != nullptr, "could not lookup JDK_Canonicalize");
-    return;
-  }
+  
+  CanonicalizeEntry = CAST_TO_FN_PTR(canonicalize_fn_t, JDK_Canonicalize);
+  assert(CanonicalizeEntry != nullptr, "could not lookup JDK_Canonicalize");
 
   void *javalib_handle = os::native_java_library();
   if (javalib_handle == nullptr) {

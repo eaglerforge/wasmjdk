@@ -21,6 +21,7 @@
  * questions.
  *
  */
+#include <sched.h>
 
 #ifndef OS_LINUX_OS_LINUX_HPP
 #define OS_LINUX_OS_LINUX_HPP
@@ -278,7 +279,7 @@ class os::Linux {
   static NumaAllocationPolicy _current_numa_policy;
 
  public:
-  static int sched_getcpu()  { return _sched_getcpu != nullptr ? _sched_getcpu() : -1; }
+  static int sched_getcpu()  { return -1; }
   static int numa_node_to_cpus(int node, unsigned long *buffer, int bufferlen);
   static int numa_max_node() { return _numa_max_node != nullptr ? _numa_max_node() : -1; }
   static int numa_num_configured_nodes() {
