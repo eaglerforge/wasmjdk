@@ -18,10 +18,6 @@ extern "C" {
 
 typedef uint64_t eventfd_t;
 
-int eventfd(unsigned int initval, int flags);
-
-#ifdef EVENTFD_SHIM_IMPLEMENTATION
-
 #include <sys/ioctl.h>
 
 int eventfd(unsigned int initval, int flags) {
@@ -45,8 +41,6 @@ int eventfd(unsigned int initval, int flags) {
     }
     return read_fd; 
 }
-
-#endif // EVENTFD_SHIM_IMPLEMENTATION
 
 #ifdef __cplusplus
 }

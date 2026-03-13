@@ -23,7 +23,7 @@
  * questions.
  */
 
- #include <sys/eventfd.h>
+#include <sys/eventfd.h>
 
 #include "jni.h"
 #include "jni_util.h"

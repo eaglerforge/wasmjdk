@@ -2916,33 +2916,34 @@ static void warn_fail_commit_memory(char* addr, size_t size,
 //       left at the time of mmap(). This could be a potential
 //       problem.
 int os::Linux::commit_memory_impl(char* addr, size_t size, bool exec) {
-  int prot = exec ? PROT_READ|PROT_WRITE|PROT_EXEC : PROT_READ|PROT_WRITE;
-  uintptr_t res = (uintptr_t) ::mmap(addr, size, prot,
-                                     MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0);
-  if (res != (uintptr_t) MAP_FAILED) {
-    if (UseNUMAInterleaving) {
-      numa_make_global(addr, size);
-    }
-    return 0;
-  } else {
-    ErrnoPreserver ep;
-    log_trace(os, map)("mmap failed: " RANGEFMT " errno=(%s)",
-                       RANGEFMTARGS(addr, size),
-                       os::strerror(ep.saved_errno()));
-  }
+  return 0;
+  // int prot = exec ? PROT_READ|PROT_WRITE|PROT_EXEC : PROT_READ|PROT_WRITE;
+  // uintptr_t res = (uintptr_t) ::mmap(addr, size, prot,
+  //                                    MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0);
+  // if (res != (uintptr_t) MAP_FAILED) {
+  //   if (UseNUMAInterleaving) {
+  //     numa_make_global(addr, size);
+  //   }
+  //   return 0;
+  // } else {
+  //   ErrnoPreserver ep;
+  //   log_trace(os, map)("mmap failed: " RANGEFMT " errno=(%s)",
+  //                      RANGEFMTARGS(addr, size),
+  //                      os::strerror(ep.saved_errno()));
+  // }
 
-  int err = errno;  // save errno from mmap() call above
+  // int err = errno;  // save errno from mmap() call above
 
-  if (!recoverable_mmap_error(err)) {
-    ErrnoPreserver ep;
-    log_trace(os, map)("mmap failed: " RANGEFMT " errno=(%s)",
-                       RANGEFMTARGS(addr, size),
-                       os::strerror(ep.saved_errno()));
-    warn_fail_commit_memory(addr, size, exec, err);
-    vm_exit_out_of_memory(size, OOM_MMAP_ERROR, "committing reserved memory.");
-  }
+  // if (!recoverable_mmap_error(err)) {
+  //   ErrnoPreserver ep;
+  //   log_trace(os, map)("mmap failed: " RANGEFMT " errno=(%s)",
+  //                      RANGEFMTARGS(addr, size),
+  //                      os::strerror(ep.saved_errno()));
+  //   warn_fail_commit_memory(addr, size, exec, err);
+  //   vm_exit_out_of_memory(size, OOM_MMAP_ERROR, "committing reserved memory.");
+  // }
 
-  return err;
+  // return err;
 }
 
 bool os::pd_commit_memory(char* addr, size_t size, bool exec) {
@@ -3001,9 +3002,9 @@ void os::pd_commit_memory_or_exit(char* addr, size_t size, bool exec,
 int os::Linux::commit_memory_impl(char* addr, size_t size,
                                   size_t alignment_hint, bool exec) {
   int err = os::Linux::commit_memory_impl(addr, size, exec);
-  if (err == 0) {
-    realign_memory(addr, size, alignment_hint);
-  }
+  // if (err == 0) {
+  //   realign_memory(addr, size, alignment_hint);
+  // }
   return err;
 }
 

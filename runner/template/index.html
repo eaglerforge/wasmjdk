@@ -5,9 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JVM.js</title>
     <style>
+        html, body {
+            background: rgb(230,230,230);
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        h2 {
+            text-shadow: 0.75px 0.75px 0px rgba(0,0,0,0.5);
+            display: block;
+            text-decoration: underline;
+        }
         @font-face {
             font-family: 'unscii';
-            src: url('unifont.otf') format('otf');
+            src: url('unifont.woff2') format('woff2');
             font-weight: lighter;
             font-style: normal;
             font-display: swap;
@@ -15,17 +27,55 @@
         * {
             font-family: 'unscii';
         }
+        button, select {
+            border: 2px outset white;
+            font-family: 'unscii';
+            background: rgb(230,230,230);
+            color: black;
+            margin-right: 5px;
+            margin-bottom: 6px;
+            height: 1.5rem;
+            line-height: 1.2rem;
+            outline: 0px;
+            font-size: 0.75rem;
+            display: inline-block;
+        }
         #output {
-            border: 1px solid black;
+            border: 2px inset white;
+            background: rgb(230,230,230);
+            display: inline-block;
+            max-width: 50vw;
+            padding: 4px;
+        }
+        ::selection {
+            background-color: rgb(98, 131, 131);
+        }
+        #titlebar {
+            display: block;
+            width: calc(100vw - 10px);
+            background: rgb(0, 116, 183);
+            height: 1.25rem;
+            align-content: center;
+            text-align: left;
+            padding-left: 4px;
+            color: white;
+            border-width: 3px;
+            border-style: outset;
+            border-color: rgb(154, 186, 205);
         }
     </style>
 </head>
 <body>
+    <div id="titlebar">
+        JVM.js Demo Page
+    </div>
     <h2>JVM.js</h2>
     <p>Experimental web port of OpenJDK 25 Zero Variant.</p>
     <script src="jvm.js"></script>
     <select id="test"></select><button id="runtest">run</button>
     <br>
+    <br>
+    Runtime Info: <br>
     <span id="output"></span>
     <script>
         (async function () {
