@@ -1,2 +1,4 @@
 JAVA_VERSION="25"
 MODULES="java.base java.logging java.xml"
+
+BUILD_HOST="Linux 6.12.66 x86_64 zxmushroom63@nixos"

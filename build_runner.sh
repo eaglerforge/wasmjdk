@@ -39,5 +39,7 @@ echo "Copying runtime..."
 cd $PROJ_ROOT"/docs"
 mkdir -p rt
 cp ../wasmjdk_build/runtime/release rt/rt.info
+echo "" >> rt/rt.info
+echo "BUILD_HOST=\""$(uname)" "$(uname -r)" "$(uname -m)" "$USER"@"$(uname -n)"\"" >> rt/rt.info
 cp ../wasmjdk_build/runtime/lib/modules rt/modules
 echo "Done!"

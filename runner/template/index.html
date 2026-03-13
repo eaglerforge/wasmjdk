@@ -11,6 +11,7 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
+            cursor: default;
         }
         h2 {
             text-shadow: 0.75px 0.75px 0px rgba(0,0,0,0.5);
@@ -39,12 +40,18 @@
             outline: 0px;
             font-size: 0.75rem;
             display: inline-block;
+            cursor: pointer;
+        }
+        button:active, select:active {
+            border-style: inset;
         }
         #output {
+            text-align: left;
             border: 2px inset white;
             background: rgb(230,230,230);
             display: inline-block;
             max-width: 50vw;
+            cursor: text;
             padding: 4px;
         }
         ::selection {
@@ -70,18 +77,19 @@
         JVM.js Demo Page
     </div>
     <h2>JVM.js</h2>
-    <p>Experimental web port of OpenJDK 25 Zero Variant.</p>
+    <p>Experimental web port of OpenJDK 25 Zero Variant</p>
     <script src="jvm.js"></script>
-    <select id="test"></select><button id="runtest">run</button>
+    <select id="test"></select><button id="runtest">.main()</button>
     <br>
     <br>
     Runtime Info: <br>
     <span id="output"></span>
+    <script src="coi-sw.min.js"></script>
     <script>
         (async function () {
             const buildInfo = await (await fetch("rt/rt.info")).text();
             const out = document.querySelector("#output");
-            out.innerHTML = buildInfo.replaceAll("\n", "<br>");
+            out.innerHTML = `${buildInfo}\n\nSHARED_ARR_BUF="${"SharedArrayBuffer" in globalThis}"`.replaceAll("\n", "<br>");
             const JVM = await initJVM();
             globalThis.JVM = JVM;
 
