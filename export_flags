@@ -1,1 +1,1 @@
--sEXPORTED_FUNCTIONS=['_malloc','_free','_JNI_CreateJavaVM','_JNI_GetDefaultJavaVMInitArgs','_JNI_GetCreatedJavaVMs','_main'] -sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','FS','ERRNO_CODES'] -sEXIT_RUNTIME=0
+-sEXPORTED_FUNCTIONS=['_malloc','_free','_JNI_CreateJavaVM','_JNI_GetDefaultJavaVMInitArgs','_JNI_GetCreatedJavaVMs'] -sEXPORTED_RUNTIME_METHODS=['PThread','ccall','cwrap','FS','ERRNO_CODES'] -sEXIT_RUNTIME=0

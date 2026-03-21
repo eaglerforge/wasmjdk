@@ -48,7 +48,7 @@
 extern "C" {
 #endif
 
-#define JNICALL
+#define JNICALL //__attribute__((pcs("aapcs")))
 
 /*
  * JNI Types

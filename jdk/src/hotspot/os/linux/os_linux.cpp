@@ -1067,6 +1067,8 @@ bool os::create_thread(Thread* thread, ThreadType thr_type,
     int trials_remaining = 4;
     useconds_t next_delay = 1000;
     while (true) {
+      printf("Attempting to create thread: %s. Current VM count: %d\n", 
+        thread->name(), Threads::number_of_threads());
       ret = pthread_create(&tid, &attr, (void* (*)(void*)) thread_native_entry, thread);
 
       if (ret != EAGAIN) {

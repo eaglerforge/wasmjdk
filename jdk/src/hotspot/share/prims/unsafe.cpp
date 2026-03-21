@@ -60,7 +60,7 @@
 #include "utilities/copy.hpp"
 #include "utilities/dtrace.hpp"
 #include "utilities/macros.hpp"
-
+#include <iostream>
 /**
  * Implementation of the jdk.internal.misc.Unsafe class
  */
@@ -741,18 +741,27 @@ UNSAFE_ENTRY_SCOPED(jlong, Unsafe_CompareAndExchangeLong(JNIEnv *env, jobject un
 } UNSAFE_END
 
 UNSAFE_ENTRY(jboolean, Unsafe_CompareAndSetReference(JNIEnv *env, jobject unsafe, jobject obj, jlong offset, jobject e_h, jobject x_h)) {
-  oop x = JNIHandles::resolve(x_h);
-  oop e = JNIHandles::resolve(e_h);
-  oop p = JNIHandles::resolve(obj);
-  assert_field_offset_sane(p, offset);
-  oop ret = HeapAccess<ON_UNKNOWN_OOP_REF>::oop_atomic_cmpxchg_at(p, (ptrdiff_t)offset, e, x);
-  return ret == e;
+  oop new_ref = JNIHandles::resolve(x_h);
+  oop expected = JNIHandles::resolve(e_h);
+  oop parent = JNIHandles::resolve(obj);
+  assert_field_offset_sane(parent, offset);
+  oop ret = HeapAccess<ON_UNKNOWN_OOP_REF>::oop_atomic_cmpxchg_at(parent, (ptrdiff_t)offset, expected, new_ref);
+  return ret == expected;
 } UNSAFE_END
 
 UNSAFE_ENTRY_SCOPED(jboolean, Unsafe_CompareAndSetInt(JNIEnv *env, jobject unsafe, jobject obj, jlong offset, jint e, jint x)) {
+  std::cout << "Offset: " << offset << std::endl;
   oop p = JNIHandles::resolve(obj);
+  std::cout << "Base: " << (void*)p << std::endl;
   volatile jint* addr = (volatile jint*)index_oop_from_field_offset_long(p, offset);
-  return Atomic::cmpxchg(addr, e, x) == e;
+  std::cout << "Addr*: " << addr << std::endl;
+  std::cout << "Addr:  " << *addr << std::endl;
+  std::cout << "Expected:  " << e << std::endl;
+  std::cout << "New Value:  " << x << std::endl;
+  bool j = Atomic::cmpxchg(addr, e, x) == e; //returns previous value
+  std::cout << "New Addr Value:  " << *addr << std::endl;
+  std::cout << "Check value:  " << j << std::endl;
+  return j;
 } UNSAFE_END
 
 UNSAFE_ENTRY_SCOPED(jboolean, Unsafe_CompareAndSetLong(JNIEnv *env, jobject unsafe, jobject obj, jlong offset, jlong e, jlong x)) {

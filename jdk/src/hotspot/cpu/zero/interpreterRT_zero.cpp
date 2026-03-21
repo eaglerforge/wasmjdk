@@ -41,6 +41,10 @@ void InterpreterRuntime::SignatureHandlerGeneratorBase::pass_int() {
 }
 
 void InterpreterRuntime::SignatureHandlerGeneratorBase::pass_long() {
+  // if (_cif->nargs % 2 != 0) {
+  //   push(T_INT); // padding
+  //   _cif->nargs++;
+  // }
   push(T_LONG);
   _cif->nargs++;
 }
@@ -51,6 +55,10 @@ void InterpreterRuntime::SignatureHandlerGeneratorBase::pass_float() {
 }
 
 void InterpreterRuntime::SignatureHandlerGeneratorBase::pass_double() {
+  // if (_cif->nargs % 2 != 0) {
+  //   push(T_INT); // padding
+  //   _cif->nargs++;
+  // }
   push(T_DOUBLE);
   _cif->nargs++;
 }

@@ -11,7 +11,7 @@ emconfigure ./configure \
     --enable-static \
     --disable-shared \
     --disable-multi-os-directory \
-    CFLAGS="-O3 -fPIC -fno-jump-tables -fno-direct-access-external-data -fvisibility=default -sMAIN_MODULE=1 -sRELOCATABLE=1"
+    CFLAGS="-O3 -fPIC -fno-jump-tables -fno-direct-access-external-data -fvisibility=default -sMAIN_MODULE=1 -sRELOCATABLE=1 -sWASM_BIGINT=1"
 
 emmake make
 emmake make install

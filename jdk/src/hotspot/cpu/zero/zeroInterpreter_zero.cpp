@@ -50,6 +50,8 @@
 #include "entry_zero.hpp"
 #include "stack_zero.inline.hpp"
 
+#include <iostream>
+
 void ZeroInterpreter::initialize_stub() {
   if (_code != nullptr) return;
 
@@ -220,6 +222,8 @@ void ZeroInterpreter::main_loop(int recurse, TRAPS) {
     if (istate->msg() == BytecodeInterpreter::call_method) {
       Method* callee = istate->callee();
 
+      std::cout << "Calling method: " << callee->name_and_sig_as_C_string() << std::endl;
+
       // Trim back the stack to put the parameters at the top
       stack->set_sp(istate->stack() + 1);
 
@@ -387,7 +391,7 @@ int ZeroInterpreter::native_entry(Method* method, intptr_t UNUSED, TRAPS) {
   void **arguments;
   void *mirror; {
     arguments =
-      (void **) stack->alloc(handler->argument_count() * sizeof(void **));
+      (void **) stack->alloc((handler->argument_count()) * sizeof(void **));
     void **dst = arguments;
 
     void *env = thread->jni_environment();
@@ -401,29 +405,54 @@ int ZeroInterpreter::native_entry(Method* method, intptr_t UNUSED, TRAPS) {
     }
 
     intptr_t *src = locals;
+    uint32_t write_index = 0;
+    static uint64_t abi_padding_dummy = 69420;
     for (int i = dst - arguments; i < handler->argument_count(); i++) {
       ffi_type *type = handler->argument_type(i);
+
       if (type == &ffi_type_pointer) {
         if (*src) {
           stack->push((intptr_t) src);
-          *(dst++) = stack->sp();
+          *(dst) = stack->sp();
+          dst++;
         }
         else {
-          *(dst++) = src;
+          *(dst) = src;
+          dst++;
         }
+        std::cout << "Pushed pointer to stack: " << (void*)src << "\n";
         src--;
+        write_index += 4;
       }
       else if (type->size == 4) {
-        *(dst++) = src--;
+        std::cout << "Pushed s4 to stack: " << *(uint32_t*)(src) << "\n";
+
+        *(dst) = src;
+        dst++;
+        src--;
+
+        write_index += 4;
       }
       else if (type->size == 8) {
+        
         src--;
-        *(dst++) = src--;
+        
+        std::cout << "Pushed s8 to stack, pointer: " << (uint64_t*)(src) << "\n";
+        std::cout << "Pushed s8 to stack, wrvalue: " << *(uint64_t*)(src) << "\n";
+        std::cout << "Pushed s8 to stack, wrvalue (*+1): " << *(uint64_t*)(src + 1) << "\n";
+        std::cout << "Pushed s8 to stack, wrvalue (*-1): " << *(uint64_t*)(src - 1) << "\n";
+        *(dst) = (uint64_t*)(src);
+        
+        dst++;
+        src--;
+
+        write_index += 8;
       }
       else {
         ShouldNotReachHere();
       }
     }
+    std::cout << std::endl;
   }
 
   // Set up the Java frame anchor

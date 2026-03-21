@@ -78,6 +78,10 @@ class Klass : public Metadata {
   };
 
   static const uint KLASS_KIND_COUNT = ObjArrayKlassKind + 1;
+
+  // Class name.  Instance classes: java/lang/String, etc.  Array classes: [I,
+  // [Ljava/lang/String;, etc.  Set to zero for all other kinds of classes.
+  Symbol*     _name;
  protected:
 
   // If you add a new field that points to any metaspace object, you
@@ -132,10 +136,6 @@ class Klass : public Metadata {
   // Where to look to observe a supertype (it is &_secondary_super_cache for
   // secondary supers, else is &_primary_supers[depth()].
   juint       _super_check_offset;
-
-  // Class name.  Instance classes: java/lang/String, etc.  Array classes: [I,
-  // [Ljava/lang/String;, etc.  Set to zero for all other kinds of classes.
-  Symbol*     _name;
 
   // Cache of last observed secondary supertype
   Klass*      _secondary_super_cache;

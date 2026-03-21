@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JVM.js</title>
     <style>
+        /*
+        html {
+            filter: invert(1)
+        } */
         html, body {
             background: rgb(230,230,230);
             text-align: center;
@@ -19,18 +23,18 @@
             text-decoration: underline;
         }
         @font-face {
-            font-family: 'unscii';
+            font-family: 'unifont';
             src: url('unifont.woff2') format('woff2');
             font-weight: lighter;
             font-style: normal;
             font-display: swap;
         }
         * {
-            font-family: 'unscii';
+            font-family: 'unifont', monospace;
         }
         button, select {
             border: 2px outset white;
-            font-family: 'unscii';
+            font-family: 'unifont', monospace;
             background: rgb(230,230,230);
             color: black;
             margin-right: 5px;
@@ -89,7 +93,7 @@
         (async function () {
             const buildInfo = await (await fetch("rt/rt.info")).text();
             const out = document.querySelector("#output");
-            out.innerHTML = `${buildInfo}\n\nSHARED_ARR_BUF="${"SharedArrayBuffer" in globalThis}"`.replaceAll("\n", "<br>");
+            out.innerHTML = `${buildInfo}\nSHARED_ARR_BUF="${"SharedArrayBuffer" in globalThis}"`.replaceAll("\n", "<br>");
             const JVM = await initJVM();
             globalThis.JVM = JVM;
 
@@ -111,7 +115,7 @@
                 const MainClass = new Uint8Array(await (await fetch(`compiled_tests/${testSelector.value}.class`)).arrayBuffer());
                 console.log(MainClass);
                 JVM.FS.writeFile("/home/web_user/Main.class", MainClass);
-                console.log(JVM._main());
+                JVM.__Z19run_classfile_proxyv();
             });
         })();
 
