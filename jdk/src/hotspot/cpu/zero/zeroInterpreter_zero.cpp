@@ -323,6 +323,7 @@ int ZeroInterpreter::native_entry(Method* method, intptr_t UNUSED, TRAPS) {
 
   JavaThread *thread = THREAD;
   ZeroStack *stack = thread->zero_stack();
+  uint64_t* aligned64Slots = nullptr;
 
   // Allocate and initialize our frame
   InterpreterFrame *frame = InterpreterFrame::build(method, CHECK_0);
@@ -389,6 +390,9 @@ int ZeroInterpreter::native_entry(Method* method, intptr_t UNUSED, TRAPS) {
     goto unlock_unwind_and_return;
 
   void **arguments;
+
+  aligned64Slots = new uint64_t[16];
+
   void *mirror; {
     arguments =
       (void **) stack->alloc((handler->argument_count()) * sizeof(void **));
@@ -404,9 +408,10 @@ int ZeroInterpreter::native_entry(Method* method, intptr_t UNUSED, TRAPS) {
       *(dst++) = &mirror;
     }
 
+    
+
     intptr_t *src = locals;
-    uint32_t write_index = 0;
-    static uint64_t abi_padding_dummy = 69420;
+    uint32_t write_64_idx = 0;
     for (int i = dst - arguments; i < handler->argument_count(); i++) {
       ffi_type *type = handler->argument_type(i);
 
@@ -422,7 +427,6 @@ int ZeroInterpreter::native_entry(Method* method, intptr_t UNUSED, TRAPS) {
         }
         std::cout << "Pushed pointer to stack: " << (void*)src << "\n";
         src--;
-        write_index += 4;
       }
       else if (type->size == 4) {
         std::cout << "Pushed s4 to stack: " << *(uint32_t*)(src) << "\n";
@@ -430,8 +434,6 @@ int ZeroInterpreter::native_entry(Method* method, intptr_t UNUSED, TRAPS) {
         *(dst) = src;
         dst++;
         src--;
-
-        write_index += 4;
       }
       else if (type->size == 8) {
         
@@ -441,12 +443,15 @@ int ZeroInterpreter::native_entry(Method* method, intptr_t UNUSED, TRAPS) {
         std::cout << "Pushed s8 to stack, wrvalue: " << *(uint64_t*)(src) << "\n";
         std::cout << "Pushed s8 to stack, wrvalue (*+1): " << *(uint64_t*)(src + 1) << "\n";
         std::cout << "Pushed s8 to stack, wrvalue (*-1): " << *(uint64_t*)(src - 1) << "\n";
-        *(dst) = (uint64_t*)(src);
+
+        aligned64Slots[write_64_idx] = *(uint64_t*)(src);
+
+        *(dst) = (uint64_t*)(&aligned64Slots[write_64_idx]);
         
         dst++;
         src--;
 
-        write_index += 8;
+        write_64_idx += 1;
       }
       else {
         ShouldNotReachHere();
@@ -464,6 +469,10 @@ int ZeroInterpreter::native_entry(Method* method, intptr_t UNUSED, TRAPS) {
   // Make the call
   intptr_t result[4 - LogBytesPerWord];
   ffi_call(handler->cif(), (void (*)()) function, result, arguments);
+
+  if (aligned64Slots != nullptr) {
+    delete[] aligned64Slots;
+  }
 
   // Change the thread state back to _thread_in_Java and ensure it
   // is seen by the GC thread.
