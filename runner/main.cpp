@@ -88,16 +88,16 @@ void* p_run_classfile(void* arg) {
     std::cout << "\n[Pthread] Trying to init JVM in a side thread..." << std::endl;
 
     //add java home, upload modules file, fix class path to a root-based path
-    JavaVMOption options[8];
-    vm_args.nOptions = 8;
+    JavaVMOption options[6];
+    vm_args.nOptions = 6;
     options[0].optionString = (char*)"-Djava.class.path=/home/web_user/classes";
     options[1].optionString = (char*)"-Djava.home=/";
     options[2].optionString = (char*)"--enable-native-access=ALL-UNNAMED";
     options[3].optionString = (char*)"-Xss16M";
     options[4].optionString = (char*)"-Dsun.boot.library.path=/lib";
-    options[5].optionString = (char*)"-Xlog:class+load=info";
-    options[6].optionString = (char*)"--module-path=/home/web_user/wasmjdk/lib/modules";
-    options[7].optionString = (char*)"-Dsun.misc.URLClassPath.debug=true";
+    options[5].optionString = (char*)"--module-path=/home/web_user/wasmjdk/lib/modules";
+    //options[6].optionString = (char*)"-Xlog:class+load=info";
+    //options[7].optionString = (char*)"-Dsun.misc.URLClassPath.debug=true";
 
     vm_args.version = JNI_VERSION_21;
     vm_args.options = options;

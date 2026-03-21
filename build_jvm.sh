@@ -1,5 +1,6 @@
 EMSTACKDEBUG=0
 EMMETHODLOGS=0
+EMSTATICCALLLOGS=0
 
 SHIMLD=false #use a fake linker that never returns errors
 export SOURCE_DATE_EPOCH=315532802
@@ -18,7 +19,7 @@ export AR=$EMTOOLCHAIN"/emar"
 export STRIP=true
 export NM=$EMTOOLCHAIN"/emnm"
 export INCL="-I"$SHIM_INCLUDES" -I"$LIBFFI_BUILD"/include ";
-export CFLAGS=" -sWASM_BIGINT=1 -DVM_LITTLE_ENDIAN -DEMSTACKDEBUG=$EMSTACKDEBUG -DEMMETHODLOGS=$EMMETHODLOGS -sMAIN_MODULE=1 -sRELOCATABLE=1 -sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -pthread -O0 -g -gseparate-dwarf -gsource-map -fPIC -fno-direct-access-external-data -fvisibility=default -Wno-macro-redefined -Wno-undef -Wno-format -Wno-format-security -Wno-unused -Wno-unused-private-field -Wno-missing-braces -Wno-unused-function -Wno-bitwise-instead-of-logical -Wno-deprecated-declarations -Wno-unused-command-line-argument -sMAIN_MODULE=1 -sRELOCATABLE=1 -DSTATIC_BUILD=1 "$INCL
+export CFLAGS=" -sWASM_BIGINT=1 -DVM_LITTLE_ENDIAN -DEMSTATICCALLLOGS=$EMSTATICCALLLOGS -DEMSTACKDEBUG=$EMSTACKDEBUG -DEMMETHODLOGS=$EMMETHODLOGS -sMAIN_MODULE=1 -sRELOCATABLE=1 -sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -pthread -O0 -g -gseparate-dwarf -gsource-map -fPIC -fno-direct-access-external-data -fvisibility=default -Wno-macro-redefined -Wno-undef -Wno-format -Wno-format-security -Wno-unused -Wno-unused-private-field -Wno-missing-braces -Wno-unused-function -Wno-bitwise-instead-of-logical -Wno-deprecated-declarations -Wno-unused-command-line-argument -sMAIN_MODULE=1 -sRELOCATABLE=1 -DSTATIC_BUILD=1 "$INCL
 export CXXFLAGS=$CFLAGS" "
 export LDFLAGS="-sRELOCATABLE=1 -Wno-unused-command-line-argument -sMAIN_MODULE=1 -fPIC -fvisibility=default -sERROR_ON_UNDEFINED_SYMBOLS=0 "$EXPOSE" --no-entry "
 export PRECOMPILED_HEADERS_AVAILABLE=false

@@ -242,7 +242,9 @@ void JavaCalls::call_special(JavaValue* result, Handle receiver, Klass* klass, S
 // ============ Static calls ============
 
 void JavaCalls::call_static(JavaValue* result, Klass* klass, Symbol* name, Symbol* signature, JavaCallArguments* args, TRAPS) {
+  #if EMSTATICCALLLOGS == 1
   std::cout << "Static JavaCall: for signature " << name->as_C_string() << signature->as_C_string() << " in class " << klass->_name->as_C_string() << std::endl;
+  #endif
   CallInfo callinfo;
   LinkInfo link_info(klass, name, signature);
   LinkResolver::resolve_static_call(callinfo, link_info, true, CHECK);
