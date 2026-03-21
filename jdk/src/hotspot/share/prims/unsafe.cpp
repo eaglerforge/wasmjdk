@@ -750,17 +750,23 @@ UNSAFE_ENTRY(jboolean, Unsafe_CompareAndSetReference(JNIEnv *env, jobject unsafe
 } UNSAFE_END
 
 UNSAFE_ENTRY_SCOPED(jboolean, Unsafe_CompareAndSetInt(JNIEnv *env, jobject unsafe, jobject obj, jlong offset, jint e, jint x)) {
-  std::cout << "Offset: " << offset << std::endl;
+  //std::cout << "Offset: " << offset << std::endl;
+
   oop p = JNIHandles::resolve(obj);
-  std::cout << "Base: " << (void*)p << std::endl;
+
+  //std::cout << "Base: " << (void*)p << std::endl;
+
   volatile jint* addr = (volatile jint*)index_oop_from_field_offset_long(p, offset);
-  std::cout << "Addr*: " << addr << std::endl;
-  std::cout << "Addr:  " << *addr << std::endl;
-  std::cout << "Expected:  " << e << std::endl;
-  std::cout << "New Value:  " << x << std::endl;
+
+  //std::cout << "Addr*: " << addr << std::endl;
+  //std::cout << "Addr:  " << *addr << std::endl;
+  //std::cout << "Expected:  " << e << std::endl;
+  //std::cout << "New Value:  " << x << std::endl;
   bool j = Atomic::cmpxchg(addr, e, x) == e; //returns previous value
-  std::cout << "New Addr Value:  " << *addr << std::endl;
-  std::cout << "Check value:  " << j << std::endl;
+
+  //std::cout << "New Addr Value:  " << *addr << std::endl;
+  //std::cout << "Check value:  " << j << std::endl;
+
   return j;
 } UNSAFE_END
 

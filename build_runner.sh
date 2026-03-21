@@ -9,8 +9,8 @@ rm -rf *
 echo $(pwd)
 emcc ../runner/main.cpp -Wl,--whole-archive ../wasmjdk_build/monolith/libjvm.a -Wl,--no-whole-archive -Wl,--whole-archive -L../libffi/wasm_build/lib/ -lffi -I../libffi/wasm_build/include/ -pthread -I../wasmjdk_build/monolith/include/ -I../wasmjdk_build/monolith/include/linux/ -o jvm.js $(cat ../export_flags) -g4 -O0 -gsource-map -gseparate-dwarf -sINVOKE_RUN=0 -fdebug-compilation-dir='.' --emit-symbol-map --profiling-funcs -fstandalone-debug -pthread -sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -Wl,--error-limit=0 -ferror-limit=0 -sSEPARATE_DWARF_URL="jvm.wasm.debug.wasm" \
  -s MODULARIZE=1 -s EXPORT_NAME='initJVM' \
- -sERROR_ON_UNDEFINED_SYMBOLS=0 -sALLOW_MEMORY_GROWTH=0 -sMAIN_MODULE -sRELOCATABLE=1 -sEXPORT_ALL=1 -sLINKABLE=1 -Wl,--export-dynamic -Wl,--allow-multiple-definition -sPTHREAD_POOL_SIZE=4 -sPTHREAD_POOL_SIZE_STRICT=2 -sINITIAL_MEMORY=3221225472 -sMAXIMUM_MEMORY=3221225472 \
- -sSTACK_SIZE=16777216 -sDEFAULT_PTHREAD_STACK_SIZE=16777216 -sWASM_BIGINT=1 -sSTACK_OVERFLOW_CHECK=1
+ -sERROR_ON_UNDEFINED_SYMBOLS=0 -sALLOW_MEMORY_GROWTH=0 -sMAIN_MODULE -sRELOCATABLE=1 -sEXPORT_ALL=1 -sLINKABLE=1 -Wl,--export-dynamic -Wl,--allow-multiple-definition -sINITIAL_MEMORY=3221225472 -sMAXIMUM_MEMORY=3221225472 \
+ -sSTACK_SIZE=16777216 -sDEFAULT_PTHREAD_STACK_SIZE=16777216 -sWASM_BIGINT=1 -sSTACK_OVERFLOW_CHECK=1 -sPTHREAD_POOL_SIZE=11 -sPTHREAD_POOL_SIZE_STRICT=2
 
 mkdir -p make
 ln -s ../../jdk/ ./make/hotspot

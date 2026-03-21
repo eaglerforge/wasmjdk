@@ -1645,10 +1645,10 @@ class VM_LinuxDllLoad: public VM_Operation {
 };
 
 void * os::dll_load(const char *filename, char *ebuf, int ebuflen) {
-  // EMPATCH
-  // EMTODO
-  log_info(os)("attempting shared library load of %s", filename);
-  return nullptr;
+  printf("attempting shared library load of %s\n", filename);
+  return dlopen(NULL, RTLD_LAZY); // EMPATCH
+
+
   void * result = nullptr;
   bool load_attempted = false;
   
@@ -3718,6 +3718,8 @@ extern char* g_assert_poison; // assertion poison page address
 #endif
 
 static bool linux_mprotect(char* addr, size_t size, int prot) {
+  return true; //EMPATCH
+
   // Linux wants the mprotect address argument to be page aligned.
   char* bottom = (char*)align_down((intptr_t)addr, os::vm_page_size());
 

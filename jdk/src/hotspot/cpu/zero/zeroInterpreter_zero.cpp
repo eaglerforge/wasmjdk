@@ -222,7 +222,9 @@ void ZeroInterpreter::main_loop(int recurse, TRAPS) {
     if (istate->msg() == BytecodeInterpreter::call_method) {
       Method* callee = istate->callee();
 
+      #if EMMETHODLOGS == 1
       std::cout << "Calling method: " << callee->name_and_sig_as_C_string() << std::endl;
+      #endif
 
       // Trim back the stack to put the parameters at the top
       stack->set_sp(istate->stack() + 1);
@@ -425,11 +427,15 @@ int ZeroInterpreter::native_entry(Method* method, intptr_t UNUSED, TRAPS) {
           *(dst) = src;
           dst++;
         }
+        #if DEMSTACKDEBUG == 1
         std::cout << "Pushed pointer to stack: " << (void*)src << "\n";
+        #endif
         src--;
       }
       else if (type->size == 4) {
+        #if DEMSTACKDEBUG == 1
         std::cout << "Pushed s4 to stack: " << *(uint32_t*)(src) << "\n";
+        #endif
 
         *(dst) = src;
         dst++;
@@ -439,10 +445,10 @@ int ZeroInterpreter::native_entry(Method* method, intptr_t UNUSED, TRAPS) {
         
         src--;
         
+        #if DEMSTACKDEBUG == 1
         std::cout << "Pushed s8 to stack, pointer: " << (uint64_t*)(src) << "\n";
         std::cout << "Pushed s8 to stack, wrvalue: " << *(uint64_t*)(src) << "\n";
-        std::cout << "Pushed s8 to stack, wrvalue (*+1): " << *(uint64_t*)(src + 1) << "\n";
-        std::cout << "Pushed s8 to stack, wrvalue (*-1): " << *(uint64_t*)(src - 1) << "\n";
+        #endif
 
         aligned64Slots[write_64_idx] = *(uint64_t*)(src);
 
@@ -457,7 +463,9 @@ int ZeroInterpreter::native_entry(Method* method, intptr_t UNUSED, TRAPS) {
         ShouldNotReachHere();
       }
     }
+    #if DEMSTACKDEBUG == 1
     std::cout << std::endl;
+    #endif
   }
 
   // Set up the Java frame anchor
