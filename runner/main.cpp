@@ -11,6 +11,10 @@
 #include <dlfcn.h>
 #include <cstdint>
 #include <limits.h>
+#include <string>
+
+#include <unistd.h>
+#include <shim/fakestdin.h>
 
 extern "C" EMSCRIPTEN_KEEPALIVE void sample_function(JNIEnv* env, jobject unsafe, jobject obj, jlong offset, jobject e_h, jobject x_h) {
     std::cout << "Write Offset: " << offset << std::endl;
@@ -114,6 +118,7 @@ void* p_run_classfile(void* arg) {
         jmethodID mid = env->GetStaticMethodID(cls, "main", "([Ljava/lang/String;)V");
         if (mid != nullptr) {
             jobjectArray args = env->NewObjectArray(0, env->FindClass("java/lang/String"), nullptr);
+            std::cin.clear();
             env->CallStaticVoidMethod(cls, mid, args);
         }
     }
@@ -136,3 +141,50 @@ void run_classfile_proxy() {
     pthread_detach(thread_id);
     std::cout << "[Main] JVM thread dispatched. Main thread is now free!" << std::endl;
 }
+
+void* test_stdin_inner(void* arg) {
+    std::cin.clear();
+    // char ch[6];
+	// ch[sizeof(ch) - 1] = '\0';
+	// printf("Type %d characters:\n", sizeof(ch) - 1);
+	// ssize_t bytes_read = read(STDIN_FILENO, ch, sizeof(ch) - 1);
+	// printf("Characters \033[1;3;31mtyped\033[0m: %s\nline 2\n", ch);
+
+
+    int number;
+    std::string name;
+
+    std::cout << "Enter a number: ";
+    std::cin >> number;
+
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    std::cout << "Enter your name: ";
+    std::getline(std::cin, name);
+
+    std::cout << "Hello, " << name << "! Your number is " << number << "." << std::endl;
+
+    return nullptr;
+}
+
+EMSCRIPTEN_KEEPALIVE
+void test_stdin() {
+    pthread_t thread_id;
+    int rc = pthread_create(&thread_id, NULL, test_stdin_inner, NULL);
+    
+    if (rc) {
+        std::cerr << "Error: Unable to create thread," << rc << std::endl;
+        return;
+    }
+    
+    pthread_detach(thread_id);
+}
+
+// char* stdinBuf = nullptr;
+
+// extern "C" EMSCRIPTEN_KEEPALIVE char* stdin_ptr() {
+//     if (stdinBuf == nullptr) {
+//         stdinBuf = new char[2048](); //2kb
+//     }
+//     return stdinBuf;
+// }

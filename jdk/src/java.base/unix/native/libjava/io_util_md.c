@@ -29,6 +29,9 @@
 #include "io_util_md.h"
 #include <string.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <shim/fakestdin.h>
+#include <emscripten/atomic.h>
 
 #if defined(__linux__) || defined(_ALLBSD_SOURCE) || defined(_AIX) || defined(__EMSCRIPTEN__)
 #include <sys/ioctl.h>
@@ -43,7 +46,6 @@
 #endif
 
 #ifdef MACOSX
-
 #include <CoreFoundation/CoreFoundation.h>
 
 __private_extern__
@@ -116,6 +118,7 @@ fileOpen(JNIEnv *env, jobject this, jstring path, jfieldID fid, int flags)
             *p-- = '\0';
 #endif
         fd = handleOpen(ps, flags, 0666);
+        //printf("fileOpen() in io_util_md.c, int fd = %d, path=%s\n", fd, ps);
         if (fd != -1) {
             jobject fdobj;
             jboolean append;
@@ -171,6 +174,12 @@ fileDescriptorClose(JNIEnv *env, jobject this)
 ssize_t
 handleRead(FD fd, void *buf, jint len)
 {
+    //EMSTDINPATCH
+    if ((int)fd == 0) {
+        //printf("fs read op in io_util_md.c (stdin patch!!!), fd=%d len=%s\n", fd, (int)len);
+        return (ssize_t)fake_stdin_read(buf, (int)len);
+    }
+    
     ssize_t result;
     RESTARTABLE(read(fd, buf, len), result);
     return result;
@@ -179,6 +188,12 @@ handleRead(FD fd, void *buf, jint len)
 ssize_t
 handleWrite(FD fd, const void *buf, jint len)
 {
+    //EMSTDINPATCH
+    if ((int)fd == 0) {
+        //printf("fs write op in io_util_md.c (stdin no supported!), fd=%d\n", fd);
+        return -1;
+    }
+
     ssize_t result;
     RESTARTABLE(write(fd, buf, len), result);
     return result;
@@ -187,6 +202,13 @@ handleWrite(FD fd, const void *buf, jint len)
 jint
 handleAvailable(FD fd, jlong *pbytes)
 {
+    //EMSTDINPATCH
+    if ((int)fd == 0) {
+        //printf("fs available op in io_util_md.c (stdin patch!!!), fd=%d\n", fd);
+        *pbytes = fake_stdin_available();
+        return 1;
+    }
+
     int mode;
     struct stat buf;
     jlong size = -1, current = -1;
@@ -226,6 +248,12 @@ handleAvailable(FD fd, jlong *pbytes)
 jint
 handleSetLength(FD fd, jlong length)
 {
+    //EMSTDINPATCH
+    if ((int)fd == 0) {
+        //printf("fs set length op in io_util_md.c (unsupported), fd=%d, ret=%s\n", fd);
+        return (jint)(-1);
+    }
+
     int result;
     RESTARTABLE(ftruncate(fd, length), result);
     return result;
@@ -234,6 +262,12 @@ handleSetLength(FD fd, jlong length)
 jlong
 handleGetLength(FD fd)
 {
+    //EMSTDINPATCH
+    if ((int)fd == 0) {
+        //printf("fs get length op in io_util_md.c (stdin patch!!!), fd=%d\n", fd);
+        return (jlong)fake_stdin_available();
+    }
+
     struct stat sb;
     int result;
     RESTARTABLE(fstat(fd, &sb), result);
@@ -255,6 +289,12 @@ handleGetLength(FD fd)
 jboolean
 handleIsRegularFile(JNIEnv* env, FD fd)
 {
+    //EMSTDINPATCH
+    if ((int)fd == 0) {
+        //printf("shimming stdin [handleIsRegularFile] fd=%d\n", fd);
+        return JNI_FALSE;
+    }
+    
     struct stat fbuf;
     if (fstat(fd, &fbuf) == -1)
         JNU_ThrowIOExceptionWithLastError(env, "fstat failed");

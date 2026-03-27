@@ -111,6 +111,8 @@ void StackOverflow::create_stack_guard_pages() {
 }
 
 void StackOverflow::remove_stack_guard_pages() {
+  return; //EMPATCH
+  
   if (_stack_guard_state == stack_guard_unused) return;
   address low_addr = stack_end();
   size_t len = stack_guard_zone_size();

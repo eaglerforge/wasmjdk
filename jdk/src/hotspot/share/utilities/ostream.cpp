@@ -39,6 +39,8 @@
 #include "utilities/vmError.hpp"
 #include "utilities/xmlstream.hpp"
 
+#include <iostream>
+
 // Declarations of jvm methods
 extern "C" void jio_print(const char* s, size_t len);
 extern "C" int jio_printf(const char *fmt, ...);
@@ -584,6 +586,7 @@ const char* make_log_name(const char* log_name, const char* force_directory) {
 }
 
 fileStream::fileStream(const char* file_name) {
+  std::cout << file_name << std::endl;
   _file = os::fopen(file_name, "w");
   if (_file != nullptr) {
     _need_close = true;
@@ -594,6 +597,7 @@ fileStream::fileStream(const char* file_name) {
 }
 
 fileStream::fileStream(const char* file_name, const char* opentype) {
+  std::cout << file_name << std::endl;
   _file = os::fopen(file_name, opentype);
   if (_file != nullptr) {
     _need_close = true;

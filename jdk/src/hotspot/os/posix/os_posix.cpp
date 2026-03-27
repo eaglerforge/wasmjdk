@@ -64,6 +64,7 @@
 #include "os_linux.hpp"
 #endif
 
+#include <iostream>
 #include <dirent.h>
 #include <dlfcn.h>
 #include <grp.h>
@@ -879,6 +880,9 @@ ssize_t os::pd_write(int fd, const void *buf, size_t nBytes) {
 }
 
 ssize_t os::read_at(int fd, void *buf, unsigned int nBytes, jlong offset) {
+  if (fd == 0) {
+    std::cout << "stdin read operation in c++ found" << std::endl; //EMTODO
+  }
   return ::pread(fd, buf, nBytes, offset);
 }
 
@@ -910,6 +914,7 @@ int os::socket_close(int fd) {
 }
 
 ssize_t os::recv(int fd, char* buf, size_t nBytes, uint flags) {
+  std::cout << "Receiving from socket: " << fd << std::endl;
   RESTARTABLE_RETURN_SSIZE_T(::recv(fd, buf, nBytes, flags));
 }
 

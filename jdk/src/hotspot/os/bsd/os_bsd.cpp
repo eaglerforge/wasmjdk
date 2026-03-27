@@ -1096,7 +1096,7 @@ void * os::dll_load(const char *filename, char *ebuf, int ebuflen) {
     return os::get_default_process_handle();
   }
 
-  log_info(os)("attempting shared library load of %s", filename);
+  log_info(os)("[EMDEBUG] Attempting shared library load of %s", filename);
 
   return os::Bsd::dlopen_helper(filename, RTLD_LAZY, ebuf, ebuflen);
 }
@@ -1106,7 +1106,7 @@ void * os::dll_load(const char *filename, char *ebuf, int ebuflen) {
     return os::get_default_process_handle();
   }
 
-  log_info(os)("attempting shared library load of %s", filename);
+  log_info(os)("[EMDEBUG] Attempting shared library load of %s", filename);
 
   void* result;
   result = os::Bsd::dlopen_helper(filename, RTLD_LAZY, ebuf, ebuflen);

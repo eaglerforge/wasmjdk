@@ -1067,7 +1067,7 @@ bool os::create_thread(Thread* thread, ThreadType thr_type,
     int trials_remaining = 4;
     useconds_t next_delay = 1000;
     while (true) {
-      printf("Attempting to create thread: %s. Current VM count: %d\n", 
+      printf("[EMDEBUG] Attempting to create thread: %s. Current VM count: %d\n", 
         thread->name(), Threads::number_of_threads());
       ret = pthread_create(&tid, &attr, (void* (*)(void*)) thread_native_entry, thread);
 
@@ -1645,7 +1645,7 @@ class VM_LinuxDllLoad: public VM_Operation {
 };
 
 void * os::dll_load(const char *filename, char *ebuf, int ebuflen) {
-  printf("attempting shared library load of %s\n", filename);
+  printf("[EMDEBUG] Attempting shared library load of %s\n", filename);
   return dlopen(NULL, RTLD_LAZY); // EMPATCH
 
 
@@ -3710,7 +3710,8 @@ char* os::pd_reserve_memory(size_t bytes, bool exec) {
 }
 
 bool os::pd_release_memory(char* addr, size_t size) {
-  return anon_munmap(addr, size);
+  return true; //EMPATCH
+  //return anon_munmap(addr, size);
 }
 
 #ifdef CAN_SHOW_REGISTERS_ON_ASSERT
@@ -3743,6 +3744,7 @@ static bool linux_mprotect(char* addr, size_t size, int prot) {
 // Set protections specified
 bool os::protect_memory(char* addr, size_t bytes, ProtType prot,
                         bool is_committed) {
+  return true; // EMPATCH
   unsigned int p = 0;
   switch (prot) {
   case MEM_PROT_NONE: p = PROT_NONE; break;
@@ -3757,11 +3759,13 @@ bool os::protect_memory(char* addr, size_t bytes, ProtType prot,
 }
 
 bool os::guard_memory(char* addr, size_t size) {
-  return linux_mprotect(addr, size, PROT_NONE);
+  return true; // EMPATCH
+  //return linux_mprotect(addr, size, PROT_NONE);
 }
 
 bool os::unguard_memory(char* addr, size_t size) {
-  return linux_mprotect(addr, size, PROT_READ|PROT_WRITE);
+  return true; // EMPATCH
+  //return linux_mprotect(addr, size, PROT_READ|PROT_WRITE);
 }
 
 static int hugetlbfs_page_size_flag(size_t page_size) {
@@ -4997,6 +5001,10 @@ os::os_exception_wrapper(java_call_t f, JavaValue* value, const methodHandle& me
 // from src/solaris/hpi/src/system_md.c
 
 int os::open(const char *path, int oflag, int mode) {
+  //EMDEBUG
+  std::cout << "[EMDEBUG] os::open() on path: " << path << std::endl;
+
+
   if (strlen(path) > MAX_PATH - 1) {
     errno = ENAMETOOLONG;
     return -1;
@@ -5034,6 +5042,7 @@ int os::open(const char *path, int oflag, int mode) {
 
   int fd = ::open(path, oflag, mode);
   if (fd == -1) return -1;
+  std::cout << "[EMDEBUG] os::open returned int fd: " << fd << std::endl;
 
   //If the open succeeded, the file might still be a directory
   {
