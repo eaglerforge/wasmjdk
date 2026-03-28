@@ -1,3 +1,17 @@
+if [ "$RELEASE" = "" ]; then
+  RELEASE=$(cat RELEASE)
+fi;
+
+OPT_FLAGS=" "
+if [ "$RELEASE" = "1" ]; then
+  OPT_FLAGS="-D__RELEASE_FLAGS_PLACEHOLDER__ "
+else
+  OPT_FLAGS=$(cat debug.flags)" "
+fi
+
+echo "Release Mode (0/1): "$RELEASE
+echo "Mode Flags: "$OPT_FLAGS
+sleep 0.115
 EMSTACKDEBUG=0
 EMMETHODLOGS=0
 EMSTATICCALLLOGS=0
@@ -9,7 +23,7 @@ export SHIM_INCLUDES=$(pwd)"/patch_include/";
 export EMTOOLCHAIN=$(dirname $(which emcc))/../share/emscripten
 # make sure youve built libffi
 
-export EXPOSE=$(cat export_flags)
+export EXPOSE=$(cat export.flags)
 
 export LIBFFI_BUILD=$(pwd)/libffi/wasm_build
 export CXX=$EMTOOLCHAIN"/em++"
@@ -19,14 +33,16 @@ export AR=$EMTOOLCHAIN"/emar"
 export STRIP=true
 export NM=$EMTOOLCHAIN"/emnm"
 export INCL="-I"$SHIM_INCLUDES" -I"$LIBFFI_BUILD"/include ";
-export CFLAGS=" -sWASM_BIGINT=1 -DVM_LITTLE_ENDIAN -DEMSTATICCALLLOGS=$EMSTATICCALLLOGS -DEMSTACKDEBUG=$EMSTACKDEBUG -DEMMETHODLOGS=$EMMETHODLOGS -sMAIN_MODULE=1 -sRELOCATABLE=1 -sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -pthread -O0 -g -gseparate-dwarf -gsource-map -fPIC -fno-direct-access-external-data -fvisibility=default -Wno-macro-redefined -Wno-undef -Wno-format -Wno-format-security -Wno-unused -Wno-unused-private-field -Wno-missing-braces -Wno-unused-function -Wno-bitwise-instead-of-logical -Wno-deprecated-declarations -Wno-unused-command-line-argument -sMAIN_MODULE=1 -sRELOCATABLE=1 -DSTATIC_BUILD=1 "$INCL
+export CFLAGS=" -sWASM_BIGINT=1 -DVM_LITTLE_ENDIAN -DEMSTATICCALLLOGS=$EMSTATICCALLLOGS -DEMSTACKDEBUG=$EMSTACKDEBUG -DEMMETHODLOGS=$EMMETHODLOGS -sMAIN_MODULE=1 -sRELOCATABLE=1 -sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -pthread -fPIC -fno-direct-access-external-data -fvisibility=default -Wno-macro-redefined -Wno-undef -Wno-format -Wno-format-security -Wno-unused -Wno-unused-private-field -Wno-missing-braces -Wno-unused-function -Wno-bitwise-instead-of-logical -Wno-deprecated-declarations -Wno-unused-command-line-argument -sMAIN_MODULE=1 -sRELOCATABLE=1 -DSTATIC_BUILD=1 "$INCL" "$OPT_FLAGS
 export CXXFLAGS=$CFLAGS" "
 export LDFLAGS="-sRELOCATABLE=1 -Wno-unused-command-line-argument -sMAIN_MODULE=1 -fPIC -fvisibility=default -sERROR_ON_UNDEFINED_SYMBOLS=0 "$EXPOSE" --no-entry "
 export PRECOMPILED_HEADERS_AVAILABLE=false
 export BUILD_JDK=$(readlink -f $(dirname $(which java))"/../../..")
-export EXTEXE="yes"
+export EXTEXE="js"
 export OBJCOPY=true
 export STRIP_SYMBOLS="false"
+AC_BYPASS=$(cat ac_bypass.flags)
+
 # if still broken, remove libffi to configure, and bypass the error message
 # and instead just manually link to it using LDFLAGS and CFLAGS
 if [ "$1" = "config" ]; then
@@ -56,6 +72,11 @@ if [ "$1" = "config" ]; then
     --with-extra-cflags="$CFLAGS" --with-extra-cxxflags="$CFLAGS" --with-extra-ldflags="$LDFLAGS" \
     --with-build-jdk="$BUILD_JDK" --with-boot-jdk="$BUILD_JDK" \
     AR=$AR STRIP=$STRIP CXX=$CXX CC=$CC NM=$NM ar=$AR strip=$STRIP cxx=$CXX cc=$CC nm=$NM LD=$LD LDCXX=$LD STRIP_SYMBOLS=$STRIP_SYMBOLS
+
+
+  echo "Patching release flags to bypass autoconf (i hate autoconf)"
+  echo "Release Flags: "$(cat ../release.flags)
+  sed -i "s|-D__RELEASE_FLAGS_PLACEHOLDER__|$(cat ../release.flags)|g" build/*/spec.gmk
 else
   cp libffi/wasm_build/lib/libffi.a libffi/wasm_build/lib/libffi.so.0
   cd jdk

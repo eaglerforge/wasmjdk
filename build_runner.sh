@@ -2,11 +2,15 @@ if [ "$RELEASE" = "" ]; then
   RELEASE=$(cat RELEASE)
 fi;
 
+MODE_NAME=""
+
 OPT_FLAGS=" "
 if [ "$RELEASE" = "1" ]; then
-  OPT_FLAGS=$(cat release.flags)" "
+  OPT_FLAGS=$(cat release.flags)" -flto "
+  MODE_NAME="mode_release"
 else
   OPT_FLAGS=$(cat debug.flags)" "
+  MODE_NAME="mode_debug"
 fi
 
 echo "Release Mode (0/1): "$RELEASE
@@ -61,9 +65,11 @@ cp tests.txt ../../docs/tests.txt
 
 echo "Copying runtime..."
 cd $PROJ_ROOT"/docs"
+touch $MODE_NAME
 mkdir -p rt
 cp ../wasmjdk_build/runtime/release rt/rt.info
 echo "" >> rt/rt.info
 echo "BUILD_HOST=\""$(uname)" "$(uname -r)" "$(uname -m)" "$USER"@"$(uname -n)"\"" >> rt/rt.info
+echo "$MODE_NAME" >> rt/rt.info
 cp ../wasmjdk_build/runtime/lib/modules rt/modules
 echo "Done!"

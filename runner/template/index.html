@@ -193,7 +193,7 @@
             ) {
                 if (args[0].includes("JVM Exited")) {
                     const perf = (performance.now() - globalThis.EXEC_START_TIME);
-                    console.log("Runtime exited in: ", perf);
+                    console.log("Runtime exited in: " + perf + "ms.");
                 }
                 term += args[0] + "\n";
                 updateRender();

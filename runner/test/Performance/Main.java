@@ -23,7 +23,7 @@ public class Main {
 
     private static int runCpuHeavyTask() {
         int primeCount = 0;
-        int limit = 100_000;
+        int limit = 150_000;
 
         for (int i = 2; i < limit; i++) {
             boolean isPrime = true;

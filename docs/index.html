@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,19 +10,22 @@
         html {
             filter: invert(1)
         } */
-        html, body {
-            background: rgb(230,230,230);
+        html,
+        body {
+            background: rgb(230, 230, 230);
             text-align: center;
             margin: 0;
             padding: 0;
-            overflow: hidden;
+            overflow-x: hidden;
             cursor: default;
         }
+
         h2 {
-            text-shadow: 0.75px 0.75px 0px rgba(0,0,0,0.5);
+            text-shadow: 0.75px 0.75px 0px rgba(0, 0, 0, 0.5);
             display: block;
             text-decoration: underline;
         }
+
         @font-face {
             font-family: 'unifont';
             src: url('unifont.woff2') format('woff2');
@@ -29,13 +33,16 @@
             font-style: normal;
             font-display: swap;
         }
+
         * {
             font-family: 'unifont', monospace;
         }
-        button, select {
+
+        button,
+        select {
             border: 2px outset white;
             font-family: 'unifont', monospace;
-            background: rgb(230,230,230);
+            background: rgb(230, 230, 230);
             color: black;
             margin-right: 5px;
             margin-bottom: 6px;
@@ -46,21 +53,26 @@
             display: inline-block;
             cursor: pointer;
         }
-        button:active, select:active {
+
+        button:active,
+        select:active {
             border-style: inset;
         }
+
         #output {
             text-align: left;
             border: 2px inset white;
-            background: rgb(230,230,230);
+            background: rgb(230, 230, 230);
             display: inline-block;
             max-width: 50vw;
             cursor: text;
             padding: 4px;
         }
+
         ::selection {
             background-color: rgb(98, 131, 131);
         }
+
         #titlebar {
             display: block;
             width: calc(100vw - 10px);
@@ -76,6 +88,7 @@
         }
     </style>
 </head>
+
 <body>
     <div id="titlebar">
         JVM.js Demo Page
@@ -86,19 +99,27 @@
     <select id="test"></select><button id="runtest">.main()</button>
     <br>
     <br>
-    Runtime Info: <br>
-    <span id="output"></span>
+    <span id="stdout_title">Runtime Info: </span><br>
+    <span id="output" spellcheck="false" autocapitalize="off" autocorrect="off"></span>
     <script src="coi-sw.min.js"></script>
     <script>
+        let term = "";
+       
+        const out = document.querySelector("#output");
+
+        function updateRender() {
+            out.innerText = term;
+        }
+
         (async function () {
+            var javaInputQueue = "test\n".split("").map(x => x.charCodeAt(0));
             const buildInfo = await (await fetch("rt/rt.info")).text();
-            const out = document.querySelector("#output");
             out.innerHTML = `${buildInfo}\nSHARED_ARR_BUF="${"SharedArrayBuffer" in globalThis}"`.replaceAll("\n", "<br>");
             const JVM = await initJVM();
             globalThis.JVM = JVM;
 
             const rt = new Uint8Array(await (await fetch("rt/modules")).arrayBuffer());
-            
+
             JVM.FS.mkdirTree("/home/web_user/classes");
             JVM.FS.mkdirTree("/home/web_user/lib");
             JVM.FS.mkdirTree("/lib");
@@ -117,15 +138,86 @@
                 const opt = new Option(v, v);
                 testSelector.appendChild(opt);
             })
-            document.querySelector("#runtest").addEventListener("click", async ()=>{
+            document.querySelector("#runtest").addEventListener("click", async () => {
                 const MainClass = new Uint8Array(await (await fetch(`compiled_tests/${testSelector.value}.class`)).arrayBuffer());
                 console.log(MainClass);
                 JVM.FS.writeFile("/home/web_user/classes/Main.class", MainClass);
+
+                document.querySelector("#stdout_title").innerText = "Output Log: ";
+                out.innerText = "";
+
+                //stdinPtr = JVM._stdin_ptr();alloc_fake_stdinalloc_fake_stdinalloc_fake_stdin
+                //const stdinBuffer = JVM.HEAPU8.subarray(stdinPtr, stdinPtr + STDIN_SIZE);
+                //const stdinSync = new Int32Array(JVM.HEAPU8.buffer, stdinPtr, 1);
+
+                const stdinPtr = globalThis.stdinPtr = JVM._alloc_fake_stdin();
+                const stdinBuf = globalThis.stdinBuf = JVM.HEAPU8.subarray(stdinPtr, stdinPtr + 2048);
+
+                globalThis.EXEC_START_TIME = performance.now();
                 JVM.__Z19run_classfile_proxyv();
+                
+                addEventListener("keydown", (e) => {
+                    let mapping = {
+                        Enter: 10,
+                        Backspace: 8
+                    }
+                    let keyCode = -1;
+                    console.log(e.key, e.keyCode);
+                    if (mapping[e.key]) {
+                        keyCode = mapping[e.key];
+                    } else if (e.key.length === 1) {
+                        keyCode = e.key.charCodeAt(0);
+                    }
+                    if (keyCode === -1) {
+                        return;
+                    }
+                    console.log("Attempting keycode push for: ", keyCode);
+                    const res = JVM._fake_stdin_push_char(keyCode & 0xff);
+                    if (res === 1) {
+                        if (keyCode === 8) {
+                            term = term.slice(0, term.length - 1);
+                        } else {
+                            term += String.fromCharCode(keyCode);
+                        }
+                        updateRender();
+                    }
+                });
             });
         })();
 
+        const originalLog = console.log;
+        console.log = function (...args) {
+            if (typeof args[0] === "string" && args.length === 1
+                && !args[0].startsWith("Calling method:")
+                && !args[0].startsWith("[EMDEBUG]")
+            ) {
+                if (args[0].includes("JVM Exited")) {
+                    const perf = (performance.now() - globalThis.EXEC_START_TIME);
+                    console.log("Runtime exited in: " + perf + "ms.");
+                }
+                term += args[0] + "\n";
+                updateRender();
+            }
+            originalLog.apply(this, args);
+        }
 
+        const originalErr = console.error;
+        console.error = function (...args) {
+            if (typeof args[0] === "string" && args.length === 1) {
+                term += "[stderr] " + args[0] + "\n";
+                updateRender();
+            }
+            originalErr.apply(this, args);
+        }
+
+        out.addEventListener("dragend", (e) => {
+            e.preventDefault();
+        });
+
+        out.addEventListener("paste", (e) => {
+            e.preventDefault();
+        });
     </script>
 </body>
+
 </html>
