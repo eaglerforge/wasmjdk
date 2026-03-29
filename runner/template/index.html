@@ -125,7 +125,13 @@
             const buildInfo = await (await fetch("rt/rt.info")).text();
             out.innerHTML = `${buildInfo}\nSHARED_ARR_BUF="${"SharedArrayBuffer" in globalThis}"`.replaceAll("\n", "<br>");
             const JVM = await initJVM({
-                canvas: document.querySelector("canvas")
+                canvas: document.querySelector("canvas"),
+                locateFile: (file, scrDir)=>{
+                    if (file.startsWith("http")) {
+                        return path;
+                    }
+                    return scriptDirectory + path;
+                }
             });
             globalThis.JVM = JVM;
 
