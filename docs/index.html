@@ -127,10 +127,10 @@
             const JVM = await initJVM({
                 canvas: document.querySelector("canvas"),
                 locateFile: (file, scrDir)=>{
-                    if (file.startsWith("http")) {
-                        return path;
+                    if (file.startsWith("http:") || file.startsWith("https:")) {
+                        return file;
                     }
-                    return scriptDirectory + path;
+                    return scriptDirectory + file;
                 }
             });
             globalThis.JVM = JVM;
