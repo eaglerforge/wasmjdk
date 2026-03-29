@@ -3,3 +3,7 @@ emcache/
 wasmjdk_build/
 runner/test/compiled
 runner/test/tests.txt
+lwjgl/*.zip
+lwjgl/lwjgl*
+lwjgl*.zip
+lwjgl/

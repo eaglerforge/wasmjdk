@@ -3,7 +3,7 @@ if [ "$RELEASE" = "" ]; then
 fi;
 
 MODE_NAME=""
-
+LWJGL=$(pwd)"/lwjgl/*"
 OPT_FLAGS=" "
 if [ "$RELEASE" = "1" ]; then
   OPT_FLAGS=$(cat release.flags)" -flto "
@@ -37,7 +37,7 @@ emcc ../runner/main.cpp -Wl,--whole-archive ../wasmjdk_build/monolith/libjvm.a -
  -s MODULARIZE=1 -s EXPORT_NAME='initJVM' \
  -sERROR_ON_UNDEFINED_SYMBOLS=0 -sALLOW_MEMORY_GROWTH=0 -sMAIN_MODULE -sRELOCATABLE=1 -sEXPORT_ALL=1 -sLINKABLE=1 -Wl,--export-dynamic -Wl,--allow-multiple-definition -sINITIAL_MEMORY=$EMMEMPG -sMAXIMUM_MEMORY=$EMMEMPG \
  -sSTACK_SIZE=$EMSTACKSIZE -sDEFAULT_PTHREAD_STACK_SIZE=$EMSTACKSIZE -sWASM_BIGINT=1 -sSTACK_OVERFLOW_CHECK=1 -sPTHREAD_POOL_SIZE=$EMTHREADPOOL -sPTHREAD_POOL_SIZE_STRICT=2 \
- -sFILESYSTEM=1 $OPT_FLAGS
+ -sFILESYSTEM=1 $OPT_FLAGS -sFULL_ES3 -sFULL_ES2 -sPROXY_TO_PTHREAD=1
 
 mkdir -p make
 ln -s ../../jdk/ ./make/hotspot
@@ -55,7 +55,7 @@ do
   FDIR=$(dirname "$file")
   DIR=$FDIR
   FDIR=$(echo "${FDIR##*/}")
-  javac $file
+  javac -cp "$LWJGL" $file
   mv $DIR"/Main.class" ./compiled/$FDIR.class
   echo $FDIR >> tests.txt
 done
@@ -65,6 +65,7 @@ cp tests.txt ../../docs/tests.txt
 
 echo "Copying runtime..."
 cd $PROJ_ROOT"/docs"
+sed -i "s|'jvm.wasm'|JVM_LOC|g" jvm.js
 touch $MODE_NAME
 mkdir -p rt
 cp ../wasmjdk_build/runtime/release rt/rt.info

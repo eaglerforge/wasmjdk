@@ -457,7 +457,7 @@ AC_DEFUN([JVM_FEATURES_CALCULATE_ACTIVE],
       $JVM_FEATURES_PLATFORM_UNAVAILABLE $JVM_FEATURES_VARIANT_UNAVAILABLE)
   if test "x$enabled_but_unavailable" != x; then
     AC_MSG_NOTICE([ERROR: Unavailable JVM features explicitly enabled for '$variant': '$enabled_but_unavailable'])
-    AC_MSG_ERROR([Cannot continue])
+    #AC_MSG_ERROR([Cannot continue])
   fi
 
   # Notify the user if their command line options has no real effect

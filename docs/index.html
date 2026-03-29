@@ -86,6 +86,13 @@
             border-style: outset;
             border-color: rgb(154, 186, 205);
         }
+
+        #jvmsurface {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            border: 1px solid black;
+        }
     </style>
 </head>
 
@@ -95,6 +102,7 @@
     </div>
     <h2>JVM.js</h2>
     <p>Experimental web port of OpenJDK 25 Zero Variant</p>
+    <script>globalThis.JVM_LOC = location.host.endsWith(".github.io") ? "" : "jvm.wasm";</script>
     <script src="jvm.js"></script>
     <select id="test"></select><button id="runtest">.main()</button>
     <br>
@@ -102,6 +110,7 @@
     <span id="stdout_title">Runtime Info: </span><br>
     <span id="output" spellcheck="false" autocapitalize="off" autocorrect="off"></span>
     <script src="coi-sw.min.js"></script>
+    <canvas id="jvmsurface" width="300" height="200"></canvas>
     <script>
         let term = "";
        
@@ -115,7 +124,9 @@
             var javaInputQueue = "test\n".split("").map(x => x.charCodeAt(0));
             const buildInfo = await (await fetch("rt/rt.info")).text();
             out.innerHTML = `${buildInfo}\nSHARED_ARR_BUF="${"SharedArrayBuffer" in globalThis}"`.replaceAll("\n", "<br>");
-            const JVM = await initJVM();
+            const JVM = await initJVM({
+                canvas: document.querySelector("canvas")
+            });
             globalThis.JVM = JVM;
 
             const rt = new Uint8Array(await (await fetch("rt/modules")).arrayBuffer());

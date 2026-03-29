@@ -13,8 +13,8 @@ echo "Release Mode (0/1): "$RELEASE
 echo "Mode Flags: "$OPT_FLAGS
 sleep 0.115
 EMSTACKDEBUG=0
-EMMETHODLOGS=0
-EMSTATICCALLLOGS=0
+EMMETHODLOGS=1
+EMSTATICCALLLOGS=1
 
 SHIMLD=false #use a fake linker that never returns errors
 export SOURCE_DATE_EPOCH=315532802
