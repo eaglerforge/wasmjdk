@@ -1680,6 +1680,7 @@ public final class System {
     @CallerSensitive
     @Restricted
     public static void loadLibrary(String libname) {
+        out.println("[EMDEBUG] System.loadLibrary(" + libname + ")");
         Class<?> caller = Reflection.getCallerClass();
         Reflection.ensureNativeAccess(caller, System.class, "loadLibrary", false);
         Runtime.getRuntime().loadLibrary0(caller, libname);

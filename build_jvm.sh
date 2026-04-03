@@ -1,3 +1,4 @@
+mkdir -p lwjgl/classpath
 if [ "$RELEASE" = "" ]; then
   RELEASE=$(cat RELEASE)
 fi;
@@ -13,8 +14,8 @@ echo "Release Mode (0/1): "$RELEASE
 echo "Mode Flags: "$OPT_FLAGS
 sleep 0.115
 EMSTACKDEBUG=0
-EMMETHODLOGS=1
-EMSTATICCALLLOGS=1
+EMMETHODLOGS=0
+EMSTATICCALLLOGS=0
 
 SHIMLD=false #use a fake linker that never returns errors
 export SOURCE_DATE_EPOCH=315532802
@@ -95,8 +96,10 @@ else
 
   if [ "$2" != "skip" ]; then
     if [ "$SHIMLD" = "true" ]; then
+      echo "Shimming LD"
       emmake make -k images emscripten LOG=info LD=$LD LDCXX=$LD
     else
+      echo "Not shimming LD"
       emmake make -k images emscripten LOG=info
     fi;
   fi
@@ -122,7 +125,7 @@ else
 
   
   JDK_TARGETS="java.base" #which native jdk dependencies to add. space-separated
-  JMOD_TARGETS="java.base,java.logging,java.xml" #which software jdk dependencies to add. comma-separated
+  JMOD_TARGETS="java.base,java.logging,java.xml,jdk.unsupported" #which software jdk dependencies to add. comma-separated
 
   for targ in $JDK_TARGETS; do
     find build/emscripten/support/native/$targ -name "*.o" | grep -v "jsig.o" >> monolith/objs.txt
@@ -131,6 +134,9 @@ else
   done
   echo "Adding libjvm to monolithic build:"
   find build/emscripten/hotspot/variant-zero/libjvm/objs -name "*.o" | grep -v "jsig.o" >> monolith/objs.txt
+
+  echo "Adding lwjgl symbols to monolithic build: "
+  find ../lwjgl/src/object_files/ -name "*.o" >> monolith/objs.txt
   
   #sort -u monolith/objs.txt -o monolith/objs.txt #dedupe opbject files
 

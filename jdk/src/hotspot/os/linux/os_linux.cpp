@@ -1646,7 +1646,9 @@ class VM_LinuxDllLoad: public VM_Operation {
 
 void * os::dll_load(const char *filename, char *ebuf, int ebuflen) {
   printf("[EMDEBUG] Attempting shared library load of %s\n", filename);
-  return dlopen(NULL, RTLD_LAZY); // EMPATCH
+  void* ptr = dlopen(NULL, RTLD_LAZY); // EMPATCH
+  std::cout << "Local DLOPEN Value: " << ptr << std::endl;
+  return ptr;
 
 
   void * result = nullptr;
@@ -3206,6 +3208,7 @@ extern "C" JNIEXPORT void numa_error(char *where) { }
 // Handle request to load libnuma symbol version 1.1 (API v1). If it fails
 // load symbol from base version instead.
 void* os::Linux::libnuma_dlsym(void* handle, const char *name) {
+  std::cerr << "libnuma v1 not supported" << std::endl;
   return nullptr; //EMPATCH
   // void *f = dlvsym(handle, name, "libnuma_1.1");
   // if (f == nullptr) {
@@ -3217,6 +3220,7 @@ void* os::Linux::libnuma_dlsym(void* handle, const char *name) {
 // Handle request to load libnuma symbol version 1.2 (API v2) only.
 // Return null if the symbol is not defined in this particular version.
 void* os::Linux::libnuma_v2_dlsym(void* handle, const char* name) {
+  std::cerr << "libnuma v2 not supported" << std::endl;
   return nullptr; //EMPATCH
   //return dlvsym(handle, name, "libnuma_1.2");
 }

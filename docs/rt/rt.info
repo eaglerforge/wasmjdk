@@ -1,5 +1,5 @@
 JAVA_VERSION="25"
-MODULES="java.base java.logging java.xml"
+MODULES="java.base java.logging java.xml jdk.unsupported"
 
 BUILD_HOST="Linux 6.12.76 x86_64 zxmushroom63@nixos"
 mode_debug

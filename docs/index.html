@@ -102,7 +102,7 @@
     </div>
     <h2>JVM.js</h2>
     <p>Experimental web port of OpenJDK 25 Zero Variant</p>
-    <script>globalThis.JVM_LOC = location.host.endsWith(".github.io") ? "https://media.githubusercontent.com/media/eaglerforge/wasmjdk/refs/heads/main/docs/jvm.wasm" : "jvm.wasm";</script>
+    <script>globalThis.JVM_LOC = location.host.endsWith(".github.io") ? "https://media.githubusercontent.com/media/eaglerforge/wasmjdk/refs/heads/aojit/docs/jvm.wasm" : "jvm.wasm";</script>
     <script src="jvm.js"></script>
     <select id="test"></select><button id="runtest">.main()</button>
     <br>
@@ -130,7 +130,7 @@
                     if (file.startsWith("http:") || file.startsWith("https:")) {
                         return file;
                     }
-                    return scriptDirectory + file;
+                    return scrDir + file;
                 }
             });
             globalThis.JVM = JVM;
@@ -138,13 +138,15 @@
             const rt = new Uint8Array(await (await fetch("rt/modules")).arrayBuffer());
 
             JVM.FS.mkdirTree("/home/web_user/classes");
+            JVM.FS.mkdirTree("/home/web_user/condiments");
             JVM.FS.mkdirTree("/home/web_user/lib");
             JVM.FS.mkdirTree("/lib");
             JVM.FS.writeFile("/home/web_user/lib/modules", rt);
             JVM.FS.writeFile("/lib/modules", rt);
 
             const GHOST = new Uint8Array(0); //get java to stfu about missing libraries
-            ["libjimage", "libjava", "libnet", "libnio", "libzip", "libverify", "libjsig"].forEach(lib => {
+            ["libjimage", "libjava", "libnet", "libnio", "libzip",
+             "libverify", "libjsig", "liblwjgl", "libglfw"].forEach(lib => {
                 JVM.FS.writeFile(`/lib/${lib}.so`, GHOST);
             });
 
@@ -154,10 +156,25 @@
             testDB.forEach(v => {
                 const opt = new Option(v, v);
                 testSelector.appendChild(opt);
-            })
+            });
+            const libs = [
+                "lwjgl-egl.jar",
+                "lwjgl-glfw.jar",
+                "lwjgl-opengles.jar",
+                "lwjgl-stb.jar",
+                "lwjgl-unsafe.jar",
+                "lwjgl.jar",
+                "HelloWorld.jar"
+            ];
             document.querySelector("#runtest").addEventListener("click", async () => {
                 const MainClass = new Uint8Array(await (await fetch(`compiled_tests/${testSelector.value}.class`)).arrayBuffer());
                 console.log(MainClass);
+                for (const library of libs) {
+                    const lib = new Uint8Array(await (await fetch(`classpath/${library}`)).arrayBuffer());
+                    JVM.FS.writeFile("/home/web_user/condiments/" + library, lib);
+                    console.log("Loaded: " + library  + " into classpath")
+                }
+                
                 JVM.FS.writeFile("/home/web_user/classes/Main.class", MainClass);
 
                 document.querySelector("#stdout_title").innerText = "Output Log: ";
@@ -207,6 +224,7 @@
             if (typeof args[0] === "string" && args.length === 1
                 && !args[0].startsWith("Calling method:")
                 && !args[0].startsWith("[EMDEBUG]")
+                && !args[0].includes("[class,load]")
             ) {
                 if (args[0].includes("JVM Exited")) {
                     const perf = (performance.now() - globalThis.EXEC_START_TIME);

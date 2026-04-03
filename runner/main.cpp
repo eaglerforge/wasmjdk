@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <limits.h>
 #include <string>
+#include <dirent.h>
 
 #include <unistd.h>
 #include <shim/fakestdin.h>
@@ -83,6 +84,42 @@ int ffi_testbed() {
 }
 
 
+std::string build_classpath(const std::string& classesDir, const std::string& condimentsDir) {
+    std::string classpath = classesDir;
+    
+    DIR* dir = opendir(condimentsDir.c_str());
+    if (dir == nullptr) {
+        perror("Could not open condiments directory");
+        return classpath;
+    }
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        std::string filename = entry->d_name;
+        
+        if (filename.length() > 4 && 
+            filename.compare(filename.length() - 4, 4, ".jar") == 0) {
+            
+            classpath += ":";
+            classpath += condimentsDir;
+            if (condimentsDir.back() != '/') {
+                classpath += "/";
+            }
+            classpath += filename;
+        }
+    }
+
+    closedir(dir);
+    return classpath;
+}
+
+
+extern "C" void* __real_dlopen(const char* filename, int flags);
+extern "C" void* __wrap_dlopen(const char* filename, int flags) {
+    std::cout << "LL|Redirecting dlopen from " << filename << std::endl;
+    return __real_dlopen(NULL, flags); 
+}
+
 EMSCRIPTEN_KEEPALIVE
 void* p_run_classfile(void* arg) {
     JavaVM *jvm;
@@ -92,16 +129,23 @@ void* p_run_classfile(void* arg) {
     std::cout << "\n[Pthread] Trying to init JVM in a side thread..." << std::endl;
 
     //add java home, upload modules file, fix class path to a root-based path
-    JavaVMOption options[6];
-    vm_args.nOptions = 6;
-    options[0].optionString = (char*)"-Djava.class.path=/home/web_user/classes";
+    JavaVMOption options[11];
+    vm_args.nOptions = 11;
+    std::string cp = build_classpath("/home/web_user/classes", "/home/web_user/condiments");
+    std::cout << "Classpath: " << cp << std::endl;
+    std::string classpathOpt = "-Djava.class.path=" + cp;
+    options[0].optionString = const_cast<char*>(classpathOpt.c_str());
     options[1].optionString = (char*)"-Djava.home=/";
     options[2].optionString = (char*)"--enable-native-access=ALL-UNNAMED";
     options[3].optionString = (char*)"-Xss16M";
     options[4].optionString = (char*)"-Dsun.boot.library.path=/lib";
     options[5].optionString = (char*)"--module-path=/home/web_user/wasmjdk/lib/modules";
-    //options[6].optionString = (char*)"-Xlog:class+load=info";
-    //options[7].optionString = (char*)"-Dsun.misc.URLClassPath.debug=true";
+    options[6].optionString = (char*)"-Dorg.lwjgl.util.Debug=true";
+    options[7].optionString = (char*)"-Dorg.lwjgl.util.DebugLoader=true";
+    //options[8].optionString = (char*)"-Xcheck:jni";
+    options[8].optionString = (char*)"-Dsun.misc.URLClassPath.debug=true";
+    options[9].optionString = (char*)"-Xlog:class+load=info";
+    options[10].optionString = (char*)"-Dos.name=Linux"; //just lie
 
     vm_args.version = JNI_VERSION_21;
     vm_args.options = options;
@@ -109,17 +153,34 @@ void* p_run_classfile(void* arg) {
 
     jint res = JNI_CreateJavaVM(&jvm, (void**)&env, &vm_args);
     if (res != JNI_OK) {
-        std::cerr << "\n[Pthread] JNI Failed to create a java vm :(" << std::endl;
+        std::cerr << "\n[Pthread] JNI Failed to create a java vm :(. err: " << res << std::endl;
         return nullptr;
     };
 
     jclass cls = env->FindClass("Main");
+    if (env->ExceptionCheck()) {
+        std::cerr << "[JNI ERROR] Could not find class 'Main'" << std::endl;
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+        return nullptr;
+    }
     if (cls != nullptr) {
         jmethodID mid = env->GetStaticMethodID(cls, "main", "([Ljava/lang/String;)V");
         if (mid != nullptr) {
+            if (env->ExceptionCheck() || mid == nullptr) {
+                std::cerr << "[JNI ERROR] Could not find 'main' method in class 'Main'" << std::endl;
+                env->ExceptionDescribe();
+                env->ExceptionClear();
+                return nullptr;
+            }
             jobjectArray args = env->NewObjectArray(0, env->FindClass("java/lang/String"), nullptr);
             std::cin.clear();
             env->CallStaticVoidMethod(cls, mid, args);
+            if (env->ExceptionCheck()) {
+                std::cerr << "[Java Runtime Error] An exception occurred in Main.main:" << std::endl;
+                env->ExceptionDescribe();
+                env->ExceptionClear();
+            }
         }
     }
 
@@ -141,50 +202,3 @@ void run_classfile_proxy() {
     pthread_detach(thread_id);
     std::cout << "[Main] JVM thread dispatched. Main thread is now free!" << std::endl;
 }
-
-void* test_stdin_inner(void* arg) {
-    std::cin.clear();
-    // char ch[6];
-	// ch[sizeof(ch) - 1] = '\0';
-	// printf("Type %d characters:\n", sizeof(ch) - 1);
-	// ssize_t bytes_read = read(STDIN_FILENO, ch, sizeof(ch) - 1);
-	// printf("Characters \033[1;3;31mtyped\033[0m: %s\nline 2\n", ch);
-
-
-    int number;
-    std::string name;
-
-    std::cout << "Enter a number: ";
-    std::cin >> number;
-
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
-    std::cout << "Enter your name: ";
-    std::getline(std::cin, name);
-
-    std::cout << "Hello, " << name << "! Your number is " << number << "." << std::endl;
-
-    return nullptr;
-}
-
-EMSCRIPTEN_KEEPALIVE
-void test_stdin() {
-    pthread_t thread_id;
-    int rc = pthread_create(&thread_id, NULL, test_stdin_inner, NULL);
-    
-    if (rc) {
-        std::cerr << "Error: Unable to create thread," << rc << std::endl;
-        return;
-    }
-    
-    pthread_detach(thread_id);
-}
-
-// char* stdinBuf = nullptr;
-
-// extern "C" EMSCRIPTEN_KEEPALIVE char* stdin_ptr() {
-//     if (stdinBuf == nullptr) {
-//         stdinBuf = new char[2048](); //2kb
-//     }
-//     return stdinBuf;
-// }
