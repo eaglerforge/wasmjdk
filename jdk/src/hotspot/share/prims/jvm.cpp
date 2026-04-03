@@ -3197,6 +3197,9 @@ JVM_ENTRY_NO_ENV(void*, JVM_LoadLibrary(const char* name, jboolean throwExceptio
   void *load_result;
   {
     ThreadToNativeFromVM ttnfvm(thread);
+    //EMTODO
+    //MARKER2
+    //HEREdlopen()
     load_result = os::dll_load(name, ebuf, sizeof ebuf);
   }
   if (load_result == nullptr) {

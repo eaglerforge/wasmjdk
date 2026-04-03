@@ -35,5 +35,14 @@
         xorg.libXrandr
         xorg.xorgproto
         wabt
+        wget
+        openjdk8
+        ant
     ];
+
+    shellHook = ''
+      export ANT_HOME="${pkgs.ant}/share/ant"
+      export JAVA_HOME="${pkgs.jdk.home}"
+      export JAVA8_HOME="${pkgs.openjdk8.home}"
+    '';
 }
