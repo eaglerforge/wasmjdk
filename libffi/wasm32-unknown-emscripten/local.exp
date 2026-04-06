@@ -1,3 +1,3 @@
-set CC_FOR_TARGET "/nix/store/yy4zibimc6lk9cvq024h48647qfcsr6l-emscripten-4.0.12/bin/emcc"
-set CXX_FOR_TARGET "/nix/store/yy4zibimc6lk9cvq024h48647qfcsr6l-emscripten-4.0.12/bin/em++"
+set CC_FOR_TARGET "/nix/store/f2hizi63xa20qzrblcb3axim5ix6q1wb-emscripten-4.0.12/bin/emcc"
+set CXX_FOR_TARGET "/nix/store/f2hizi63xa20qzrblcb3axim5ix6q1wb-emscripten-4.0.12/bin/em++"
 set compiler_vendor "clang"

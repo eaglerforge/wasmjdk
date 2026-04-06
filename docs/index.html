@@ -87,7 +87,7 @@
             border-color: rgb(154, 186, 205);
         }
 
-        #jvmsurface {
+        #canvas {
             position: fixed;
             right: 0;
             bottom: 0;
@@ -110,7 +110,7 @@
     <span id="stdout_title">Runtime Info: </span><br>
     <span id="output" spellcheck="false" autocapitalize="off" autocorrect="off"></span>
     <script src="coi-sw.min.js"></script>
-    <canvas id="jvmsurface" width="300" height="200"></canvas>
+    <canvas id="canvas" width="300" height="200"></canvas>
     <script>
         let term = "";
        
@@ -120,12 +120,20 @@
             out.innerText = term;
         }
 
-        (async function () {
+        const originalQuerySelector = document.querySelector;
+        document.querySelector = function (...args) {
+            if (args[0] === "Module['canvas']") {
+                args[0] = "#canvas"; //fix for buggy emscripten
+            }
+            return originalQuerySelector.apply(this, args);
+        }
+
+        const init = (async function () {
             var javaInputQueue = "test\n".split("").map(x => x.charCodeAt(0));
             const buildInfo = await (await fetch("rt/rt.info")).text();
             out.innerHTML = `${buildInfo}\nSHARED_ARR_BUF="${"SharedArrayBuffer" in globalThis}"`.replaceAll("\n", "<br>");
+            const canvas = document.querySelector("#canvas");
             const JVM = await initJVM({
-                canvas: document.querySelector("canvas"),
                 locateFile: (file, scrDir)=>{
                     if (file.startsWith("http:") || file.startsWith("https:")) {
                         return file;
@@ -143,10 +151,16 @@
             JVM.FS.mkdirTree("/lib");
             JVM.FS.writeFile("/home/web_user/lib/modules", rt);
             JVM.FS.writeFile("/lib/modules", rt);
+            JVM.FS.mkdirTree(`/lib/linux/x86/org/lwjgl/opengles/`);
+            JVM.FS.mkdirTree(`/lib/linux/x86/org/lwjgl/opengl/`);
 
             const GHOST = new Uint8Array(0); //get java to stfu about missing libraries
             ["libjimage", "libjava", "libnet", "libnio", "libzip",
-             "libverify", "libjsig", "liblwjgl", "libglfw"].forEach(lib => {
+            "libverify", "libjsig", "liblwjgl", "libglfw", "liblwjgl_opengles",
+            "linux/x86/org/lwjgl/opengles/liblwjgl_opengles",
+            "linux/x86/org/lwjgl/opengl/liblwjgl_opengl",
+            "linux/x86/org/lwjgl/liblwjgl",
+            "liblwjgl_opengl"].forEach(lib => {
                 JVM.FS.writeFile(`/lib/${lib}.so`, GHOST);
             });
 
@@ -161,6 +175,7 @@
                 "lwjgl-egl.jar",
                 "lwjgl-glfw.jar",
                 "lwjgl-opengles.jar",
+                "lwjgl-opengl.jar",
                 "lwjgl-stb.jar",
                 "lwjgl-unsafe.jar",
                 "lwjgl.jar",
@@ -217,7 +232,10 @@
                     }
                 });
             });
-        })();
+        });
+        if (!location.search.includes("debug")) {
+            init()
+        }
 
         const originalLog = console.log;
         console.log = function (...args) {
@@ -239,6 +257,9 @@
         const originalErr = console.error;
         console.error = function (...args) {
             if (typeof args[0] === "string" && args.length === 1) {
+                if (args[0].includes("/emsdk/emscripten/system/lib/html5/callback.c")) {
+                    return; //not important
+                }
                 term += "[stderr] " + args[0] + "\n";
                 updateRender();
             }
