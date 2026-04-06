@@ -129,8 +129,8 @@ void* p_run_classfile(void* arg) {
     std::cout << "\n[Pthread] Trying to init JVM in a side thread..." << std::endl;
 
     //add java home, upload modules file, fix class path to a root-based path
-    JavaVMOption options[11];
-    vm_args.nOptions = 11;
+    JavaVMOption options[9];
+    vm_args.nOptions = 9;
     std::string cp = build_classpath("/home/web_user/classes", "/home/web_user/condiments");
     std::cout << "Classpath: " << cp << std::endl;
     std::string classpathOpt = "-Djava.class.path=" + cp;
@@ -143,9 +143,9 @@ void* p_run_classfile(void* arg) {
     options[6].optionString = (char*)"-Dorg.lwjgl.util.Debug=true";
     options[7].optionString = (char*)"-Dorg.lwjgl.util.DebugLoader=true";
     //options[8].optionString = (char*)"-Xcheck:jni";
-    options[8].optionString = (char*)"-Dsun.misc.URLClassPath.debug=true";
-    options[9].optionString = (char*)"-Xlog:class+load=info";
-    options[10].optionString = (char*)"-Dos.name=Linux"; //just lie
+    //options[8].optionString = (char*)"-Dsun.misc.URLClassPath.debug=true";
+    //options[9].optionString = (char*)"-Xlog:class+load=info";
+    options[8].optionString = (char*)"-Dos.name=Linux"; //just lie
 
     vm_args.version = JNI_VERSION_21;
     vm_args.options = options;

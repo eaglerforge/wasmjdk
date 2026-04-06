@@ -11,6 +11,7 @@ import static org.lwjgl.system.MemoryUtil.*;
 public class Main {
 
     public static void main(String[] args) {
+        GLFWErrorCallback.createPrint(System.err).set();
         System.out.println("LWJGL Graphics Test");
         System.out.flush();
         if (!glfwInit()) {

@@ -6,7 +6,7 @@ cd lwjgl
 
 mkdir -p classpath
 cd classpath
-unzip *.zip
+unzip -o *.zip
 rm *.zip
 rm *-natives-linux.jar
 cd ..
@@ -23,6 +23,7 @@ export EMCC=$(which emcc)
 export EMCPP=$(which em++)
 
 cd src
+rm -r modules/lwjgl/core/src/main/c/libffi/*
 rm -r object_files
 mkdir object_files
 
@@ -35,9 +36,9 @@ ant -Dtarget=linux -Dlocal.arch=x86_64 \
 
 export CFLAGS="-DLWJGL_LINUX=1 -DLWJGL_WASM=1 -Wno-unused-command-line-argument -isystem ../../patch_include/system_override -fvisibility=default -sEXPORT_ALL -fPIC -sRELOCATABLE"
 
-TARGETS="glfw opengles core"
+TARGETS="glfw opengles core opengl egl"
 #INC=$(find . -name "*.h" -exec dirname {} + | sort -u | sed 's/^/-I/')
-INC="-I./modules/lwjgl/core/src/main/c -I./modules/lwjgl/core/src/main/c/linux"
+INC="-I./modules/lwjgl/core/src/main/c -I./modules/lwjgl/core/src/main/c/linux -I../../libffi/wasm_build/include"
 echo $INC
 echo ""
 for targ in $TARGETS
@@ -47,7 +48,8 @@ do
   for file in $SOURCE_FILES
   do
     echo "Direct compiling file $file in $targ"
-    emcc -c $file -o object_files/$(basename $file .c).o $LOCAL_INC $INC -I../../wasmjdk_build/include -I../../wasmjdk_build/include/linux -I../../libffi/wasm_build/include -L../../libffi/wasm_build/lib -lffi $CFLAGS -sFULL_ES2 -sFULL_ES3
+    sed -i 's/"ffi.h"/<ffi.h>/g' $file
+    emcc -c $file -o object_files/$(basename $file .c).o $LOCAL_INC $INC -I../../wasmjdk_build/include -I../../wasmjdk_build/include/linux -I../../libffi/wasm_build/include -L../../libffi/wasm_build/lib -lffi $CFLAGS -sFULL_ES2 -sFULL_ES3 -sJSPI
   done
 done
 echo "it is done"
