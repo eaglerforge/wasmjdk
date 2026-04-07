@@ -135,6 +135,7 @@ void* p_run_classfile(void* arg) {
     std::cout << "Classpath: " << cp << std::endl;
     std::string classpathOpt = "-Djava.class.path=" + cp;
     options[0].optionString = const_cast<char*>(classpathOpt.c_str());
+    //options[0].optionString = (char*)"-Djava.class.path=/home/web_user/condiments/Main.jar";
     options[1].optionString = (char*)"-Djava.home=/";
     options[2].optionString = (char*)"--enable-native-access=ALL-UNNAMED";
     options[3].optionString = (char*)"-Xss16M";
@@ -157,9 +158,11 @@ void* p_run_classfile(void* arg) {
         return nullptr;
     };
 
-    jclass cls = env->FindClass("Main");
+    char* name = (char*)arg;
+    std::cout << "Finding class: " << name << std::endl;
+    jclass cls = env->FindClass(name);
     if (env->ExceptionCheck()) {
-        std::cerr << "[JNI ERROR] Could not find class 'Main'" << std::endl;
+        std::cerr << "[JNI ERROR] Could not find class: " << name << std::endl;
         env->ExceptionDescribe();
         env->ExceptionClear();
         return nullptr;
@@ -190,9 +193,9 @@ void* p_run_classfile(void* arg) {
 }
 
 EMSCRIPTEN_KEEPALIVE
-void run_classfile_proxy() {
+void run_classfile_proxy(char* cname) {
     pthread_t thread_id;
-    int rc = pthread_create(&thread_id, NULL, p_run_classfile, NULL);
+    int rc = pthread_create(&thread_id, NULL, p_run_classfile, (void*)cname);
     
     if (rc) {
         std::cerr << "Error: Unable to create thread," << rc << std::endl;

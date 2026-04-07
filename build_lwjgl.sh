@@ -36,7 +36,7 @@ ant -Dtarget=linux -Dlocal.arch=x86_64 \
 
 export CFLAGS="-DLWJGL_LINUX=1 -DLWJGL_WASM=1 -Wno-unused-command-line-argument -isystem ../../patch_include/system_override -fvisibility=default -sEXPORT_ALL -fPIC -sRELOCATABLE"
 
-TARGETS="glfw opengles core opengl egl"
+TARGETS="glfw opengles core opengl egl openal"
 #INC=$(find . -name "*.h" -exec dirname {} + | sort -u | sed 's/^/-I/')
 INC="-I./modules/lwjgl/core/src/main/c -I./modules/lwjgl/core/src/main/c/linux -I../../libffi/wasm_build/include"
 echo $INC

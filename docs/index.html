@@ -113,11 +113,33 @@
     <canvas id="canvas" width="300" height="200"></canvas>
     <script>
         let term = "";
-       
+
         const out = document.querySelector("#output");
 
         function updateRender() {
             out.innerText = term;
+        }
+
+        async function getJarFile() {
+            return new Promise((resolve, reject) => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.jar';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) {
+                        return resolve(null);
+                    }
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const arrayBuffer = reader.result;
+                        resolve(new Uint8Array(arrayBuffer));
+                    };
+                    reader.readAsArrayBuffer(file);
+                };
+                input.oncancel = () => resolve(null);
+                input.click();
+            });
         }
 
         const originalQuerySelector = document.querySelector;
@@ -134,7 +156,7 @@
             out.innerHTML = `${buildInfo}\nSHARED_ARR_BUF="${"SharedArrayBuffer" in globalThis}"`.replaceAll("\n", "<br>");
             const canvas = document.querySelector("#canvas");
             const JVM = await initJVM({
-                locateFile: (file, scrDir)=>{
+                locateFile: (file, scrDir) => {
                     if (file.startsWith("http:") || file.startsWith("https:")) {
                         return file;
                     }
@@ -156,13 +178,13 @@
 
             const GHOST = new Uint8Array(0); //get java to stfu about missing libraries
             ["libjimage", "libjava", "libnet", "libnio", "libzip",
-            "libverify", "libjsig", "liblwjgl", "libglfw", "liblwjgl_opengles",
-            "linux/x86/org/lwjgl/opengles/liblwjgl_opengles",
-            "linux/x86/org/lwjgl/opengl/liblwjgl_opengl",
-            "linux/x86/org/lwjgl/liblwjgl",
-            "liblwjgl_opengl"].forEach(lib => {
-                JVM.FS.writeFile(`/lib/${lib}.so`, GHOST);
-            });
+                "libverify", "libjsig", "liblwjgl", "libglfw", "liblwjgl_opengles",
+                "linux/x86/org/lwjgl/opengles/liblwjgl_opengles",
+                "linux/x86/org/lwjgl/opengl/liblwjgl_opengl",
+                "linux/x86/org/lwjgl/liblwjgl",
+                "liblwjgl_opengl"].forEach(lib => {
+                    JVM.FS.writeFile(`/lib/${lib}.so`, GHOST);
+                });
 
             const testSelector = document.querySelector("#test");
             const testDB = (await (await fetch("tests.txt")).text()).split("\n").map(x => x.trim()).filter(x => x && !x.startsWith("#"));
@@ -171,26 +193,42 @@
                 const opt = new Option(v, v);
                 testSelector.appendChild(opt);
             });
+            const custom_opt = new Option("CustomJar", "CustomJar");
+            testSelector.appendChild(custom_opt);
             const libs = [
                 "lwjgl-egl.jar",
                 "lwjgl-glfw.jar",
                 "lwjgl-opengles.jar",
                 "lwjgl-opengl.jar",
+                "lwjgl-openal.jar",
                 "lwjgl-stb.jar",
                 "lwjgl-unsafe.jar",
                 "lwjgl.jar",
                 "HelloWorld.jar"
             ];
             document.querySelector("#runtest").addEventListener("click", async () => {
-                const MainClass = new Uint8Array(await (await fetch(`compiled_tests/${testSelector.value}.class`)).arrayBuffer());
-                console.log(MainClass);
                 for (const library of libs) {
                     const lib = new Uint8Array(await (await fetch(`classpath/${library}`)).arrayBuffer());
                     JVM.FS.writeFile("/home/web_user/condiments/" + library, lib);
-                    console.log("Loaded: " + library  + " into classpath")
+                    console.log("Loaded: " + library + " into classpath")
                 }
-                
-                JVM.FS.writeFile("/home/web_user/classes/Main.class", MainClass);
+                let cname = "Main";
+                if (testSelector.value === "CustomJar") {
+                    const MainJar = await getJarFile();
+                    JVM.FS.writeFile("/home/web_user/condiments/Main.jar", MainJar);
+                    cname = prompt("Entry class: ", "Main");
+                } else {
+                    const MainClass = new Uint8Array(await (await fetch(`compiled_tests/${testSelector.value}.class`)).arrayBuffer());
+                    JVM.FS.writeFile("/home/web_user/classes/Main.class", MainClass);
+                }
+
+                let classNamePtr = JVM._malloc(cname.length);
+                const className = JVM.HEAPU8.subarray(classNamePtr, classNamePtr+cname.length);
+
+                for (let i = 0; i < cname.length; i++) {
+                    className[i] = 0xFF & (cname.charCodeAt(i) || 0);
+                    className[i + 1] = 0x00;
+                }
 
                 document.querySelector("#stdout_title").innerText = "Output Log: ";
                 out.innerText = "";
@@ -203,8 +241,8 @@
                 const stdinBuf = globalThis.stdinBuf = JVM.HEAPU8.subarray(stdinPtr, stdinPtr + 2048);
 
                 globalThis.EXEC_START_TIME = performance.now();
-                JVM.__Z19run_classfile_proxyv();
-                
+                JVM.__Z19run_classfile_proxyPc(classNamePtr);
+
                 addEventListener("keydown", (e) => {
                     let mapping = {
                         Enter: 10,
