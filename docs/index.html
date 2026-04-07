@@ -208,7 +208,11 @@
             ];
             document.querySelector("#runtest").addEventListener("click", async () => {
                 for (const library of libs) {
-                    const lib = new Uint8Array(await (await fetch(`classpath/${library}`)).arrayBuffer());
+                    let url = `classpath/${library}`;
+                    if (location.hostname.endsWith("github.io")) {
+                        url = "https://media.githubusercontent.com/media/eaglerforge/wasmjdk/refs/heads/main/docs/" + url;
+                    }
+                    const lib = new Uint8Array(await (await fetch(url)).arrayBuffer());
                     JVM.FS.writeFile("/home/web_user/condiments/" + library, lib);
                     console.log("Loaded: " + library + " into classpath")
                 }
@@ -299,6 +303,9 @@
                     return; //not important
                 }
                 if (args[0].includes("wasm streaming compile failed")) {
+                    return;
+                }
+                if (args[0].includes("falling back to ArrayBuffer instantiation")) {
                     return;
                 }
                 term += "[stderr] " + args[0] + "\n";
