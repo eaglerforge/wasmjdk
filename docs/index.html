@@ -102,7 +102,7 @@
     </div>
     <h2>JVM.js</h2>
     <p>Experimental web port of OpenJDK 25 Zero Variant</p>
-    <script>globalThis.JVM_LOC = location.host.endsWith(".github.io") ? "https://media.githubusercontent.com/media/eaglerforge/wasmjdk/refs/heads/aojit/docs/jvm.wasm" : "jvm.wasm";</script>
+    <script>globalThis.JVM_LOC = location.host.endsWith(".github.io") ? "https://media.githubusercontent.com/media/eaglerforge/wasmjdk/refs/heads/main/docs/jvm.wasm" : "jvm.wasm";</script>
     <script src="jvm.js"></script>
     <select id="test"></select><button id="runtest">.main()</button>
     <br>
@@ -297,6 +297,9 @@
             if (typeof args[0] === "string" && args.length === 1) {
                 if (args[0].includes("/emsdk/emscripten/system/lib/html5/callback.c")) {
                     return; //not important
+                }
+                if (args[0].includes("wasm streaming compile failed")) {
+                    return;
                 }
                 term += "[stderr] " + args[0] + "\n";
                 updateRender();
