@@ -16,6 +16,7 @@
 
 #include <unistd.h>
 #include <shim/fakestdin.h>
+#include <gl4esinit.h>
 
 extern "C" EMSCRIPTEN_KEEPALIVE void sample_function(JNIEnv* env, jobject unsafe, jobject obj, jlong offset, jobject e_h, jobject x_h) {
     std::cout << "Write Offset: " << offset << std::endl;
@@ -119,9 +120,9 @@ extern "C" void* __wrap_dlopen(const char* filename, int flags) {
     std::cout << "LL|Redirecting dlopen from " << filename << std::endl;
     return __real_dlopen(NULL, flags); 
 }
-
 EMSCRIPTEN_KEEPALIVE
 void* p_run_classfile(void* arg) {
+    initialize_gl4es();
     JavaVM *jvm;
     JNIEnv *env;
     JavaVMInitArgs vm_args;

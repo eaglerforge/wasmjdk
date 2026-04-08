@@ -11,6 +11,15 @@ rm *.zip
 rm *-natives-linux.jar
 cd ..
 
+rm -rf gl4es
+git clone --depth=1 https://github.com/ptitseb/gl4es.git
+cd gl4es
+mkdir build && cd build
+emcmake cmake .. -DNOX11=ON -DNOEGL=ON -DSTATICLIB=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-fPIC -sRELOCATABLE=1 -sSHARED_MEMORY=1 -matomics -mbulk-memory"
+emmake make -j$(nproc)
+cd ..
+cd ..
+
 rm -rf src
 wget https://github.com/LWJGL/lwjgl3/archive/refs/tags/$VER.zip
 unzip $VER.zip
@@ -38,7 +47,7 @@ export CFLAGS="-DLWJGL_LINUX=1 -DLWJGL_WASM=1 -Wno-unused-command-line-argument 
 
 TARGETS="glfw opengles core opengl egl openal"
 #INC=$(find . -name "*.h" -exec dirname {} + | sort -u | sed 's/^/-I/')
-INC="-I./modules/lwjgl/core/src/main/c -I./modules/lwjgl/core/src/main/c/linux -I../../libffi/wasm_build/include"
+INC="-I./modules/lwjgl/core/src/main/c -I./modules/lwjgl/core/src/main/c/linux -I../../libffi/wasm_build/include -I../gl4es/include"
 echo $INC
 echo ""
 for targ in $TARGETS

@@ -36,7 +36,7 @@ cd ../docs
 unlink make/hotspot
 rm -rf *
 echo $(pwd)
-emcc ../runner/main.cpp -Wl,--whole-archive -Wl,--wrap=dlopen ../wasmjdk_build/monolith/libjvm.a -Wl,--no-whole-archive -Wl,--whole-archive -L../libffi/wasm_build/lib/ -lffi -I../libffi/wasm_build/include/  -I../patch_include/ -pthread -I../wasmjdk_build/monolith/include/ -I../wasmjdk_build/monolith/include/linux/ -o jvm.js $(cat ../export.flags) -sINVOKE_RUN=0 -fdebug-compilation-dir='.' --emit-symbol-map --profiling-funcs -fstandalone-debug -pthread -sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -Wl,--error-limit=0 -ferror-limit=0 -sSEPARATE_DWARF_URL="jvm.wasm.debug.wasm" \
+emcc ../runner/main.cpp -Wl,--whole-archive -Wl,--wrap=dlopen ../wasmjdk_build/monolith/libjvm.a ../lwjgl/gl4es/lib/libGL.a -lGL -Wl,--no-whole-archive -Wl,--whole-archive -L../libffi/wasm_build/lib/ -lffi -I../libffi/wasm_build/include/  -I../patch_include/ -pthread -I../wasmjdk_build/monolith/include/ -I../wasmjdk_build/monolith/include/linux/ -I../lwjgl/gl4es/include -o jvm.js $(cat ../export.flags) -sINVOKE_RUN=0 -fdebug-compilation-dir='.' --emit-symbol-map --profiling-funcs -fstandalone-debug -pthread -sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -Wl,--error-limit=0 -ferror-limit=0 -sSEPARATE_DWARF_URL="jvm.wasm.debug.wasm" \
  -s MODULARIZE=1 -s EXPORT_NAME='initJVM' \
  -sERROR_ON_UNDEFINED_SYMBOLS=0 -sALLOW_MEMORY_GROWTH=0 -sMAIN_MODULE -sRELOCATABLE=1 -sEXPORT_ALL=1 -sLINKABLE=1 -Wl,--export-dynamic -Wl,--allow-multiple-definition -sINITIAL_MEMORY=$EMMEMPG -sMAXIMUM_MEMORY=$EMMEMPG \
  -sSTACK_SIZE=$EMSTACKSIZE -sDEFAULT_PTHREAD_STACK_SIZE=$EMSTACKSIZE -sWASM_BIGINT=1 -sSTACK_OVERFLOW_CHECK=1 -sPTHREAD_POOL_SIZE=$EMTHREADPOOL -sPTHREAD_POOL_SIZE_STRICT=2 \
