@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include <shim/fakestdin.h>
 #include <gl4esinit.h>
+#include <GLFW/glfw3.h>
+#include <GL/gl.h>
 
 extern "C" EMSCRIPTEN_KEEPALIVE void sample_function(JNIEnv* env, jobject unsafe, jobject obj, jlong offset, jobject e_h, jobject x_h) {
     std::cout << "Write Offset: " << offset << std::endl;
@@ -115,11 +117,35 @@ std::string build_classpath(const std::string& classesDir, const std::string& co
 }
 
 
-extern "C" void* __real_dlopen(const char* filename, int flags);
-extern "C" void* __wrap_dlopen(const char* filename, int flags) {
-    std::cout << "LL|Redirecting dlopen from " << filename << std::endl;
-    return __real_dlopen(NULL, flags); 
+extern "C" {
+    void* __real_dlsym(void* handle, const char* symbol);
+    void* __real_dlopen(const char* filename, int flags);
+
+    void* __wrap_dlopen(const char* filename, int flags) {
+        return __real_dlopen(NULL, flags);
+    }
+
+    void* __wrap_dlsym(void* handle, const char* symbol) {
+        if (symbol == nullptr) return nullptr;
+
+        std::string symName(symbol);
+
+        if (symName.find("gl") == 0 && symName.find("gl4es_") != 0) {
+            std::string redirectedName = "gl4es_" + symName;
+            //std::cout << "GL4ES|Redirected: " << symbol << " -> " << redirectedName << std::endl;
+            
+            void* addr = __real_dlsym(handle, redirectedName.c_str());
+            
+            if (addr) {
+                //std::cout << "GL4ES|Redirected: " << symbol << " -> " << redirectedName << " [" << addr << "]" << std::endl;
+                return addr;
+            }
+        }
+
+        return __real_dlsym(handle, symbol);
+    }
 }
+
 EMSCRIPTEN_KEEPALIVE
 void* p_run_classfile(void* arg) {
     initialize_gl4es();
@@ -205,4 +231,62 @@ void run_classfile_proxy(char* cname) {
     
     pthread_detach(thread_id);
     std::cout << "[Main] JVM thread dispatched. Main thread is now free!" << std::endl;
+}
+
+
+
+
+GLFWwindow* window;
+void drawtest() {
+    static float timer = 0;
+    timer += 0.02f;
+    float bgR = (sin(timer) * 0.5f) + 0.5f;
+    //std::cout << "frame" << std::endl;
+    glClearColor(bgR, 0.1f, 0.1f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glMatrixMode(GL_PROJECTION);
+    glUseProgram(0);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_ALPHA_TEST);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    static float r = 0;
+    glRotatef(r += 2.0f, 0, 0, 1);
+    glBegin(GL_TRIANGLES);
+        glColor3f(1, 0, 0); glVertex3f(-0.5, -0.5, 0);
+        glColor3f(0, 1, 0); glVertex3f(0.5, -0.5, 0);
+        glColor3f(0, 0, 1); glVertex3f(0, 0.5, 0);
+    glEnd();
+    glFlush();
+
+    glfwSwapBuffers(window);
+    glfwPollEvents();
+}
+
+int frametest() {
+    if (!glfwInit()) return -1;
+
+    setenv("GL4ES_NOTHREADS", "1", 1);
+    setenv("GL4ES_NO_GLSL_CACHE", "1", 1);
+    initialize_gl4es();
+
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+
+    window = glfwCreateWindow(640, 480, "gl4es Test", NULL, NULL);
+    if (!window) { glfwTerminate(); return -1; }
+    glfwMakeContextCurrent(window);
+    glViewport(0, 0, 640, 480);
+
+    // while (!glfwWindowShouldClose(window)) {
+    //     drawtest(window);
+    // }
+    emscripten_set_main_loop(drawtest, 0, 1);
+
+    //glfwTerminate();
+    return 0;
 }

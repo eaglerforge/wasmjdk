@@ -1,1 +1,1 @@
--sFULL_ES3=1 -sFULL_ES2=1 --use-port=contrib.glfw3 -lGL -sUSE_GLFW=3 -sMAX_WEBGL_VERSION=2 -sUSE_WEBGL2=1 -sGL_FFP_ONLY=1
+-include ../lwjgl/gl4es/include/GL/gl.h -sFULL_ES3=1 -sFULL_ES2=1 -lGL --use-port=contrib.glfw3 -sUSE_GLFW=3 -sMAX_WEBGL_VERSION=2 -sUSE_WEBGL2=1 -sMIN_WEBGL_VERSION=2 -sLEGACY_GL_EMULATION=0

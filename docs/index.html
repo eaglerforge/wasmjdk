@@ -93,6 +93,11 @@
             bottom: 0;
             border: 1px solid black;
         }
+        input[type=search] {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+        }
     </style>
 </head>
 
@@ -111,7 +116,25 @@
     <span id="output" spellcheck="false" autocapitalize="off" autocorrect="off"></span>
     <script src="coi-sw.min.js"></script>
     <canvas id="canvas" width="300" height="200"></canvas>
+    <input type="search" value="_gl4es_glAlphaFunc" oninput="checkSymbol(this)">
     <script>
+        function checkSymbol(input) {
+            let name = input.value;
+            const ptr = JVM._malloc(name.length + 1);
+            for (let i = 0; i < name.length; i++) {
+                JVM.HEAPU8[i + ptr] = name.charCodeAt(i) & 0xFF;
+                JVM.HEAPU8[i + ptr + 1] = 0;
+            }
+            const rtld = JVM.___wrap_dlopen(0);
+            const symbol = JVM.___wrap_dlsym(rtld, ptr); //three underscores is crazy work
+            console.log("SymID: " + symbol);
+            if (!symbol) {
+                const errorPtr = JVM._dlerror();
+                const errorStr = errorPtr ? JVM.UTF8ToString(errorPtr) : "Unknown Error";
+                console.error("dlopen(0) failed: " + errorStr);
+            }
+            JVM._free(ptr);
+        }
         let term = "";
 
         const out = document.querySelector("#output");
@@ -161,7 +184,8 @@
                         return file;
                     }
                     return scrDir + file;
-                }
+                },
+                canvas: canvas
             });
             globalThis.JVM = JVM;
 
@@ -226,12 +250,11 @@
                     JVM.FS.writeFile("/home/web_user/classes/Main.class", MainClass);
                 }
 
-                let classNamePtr = JVM._malloc(cname.length);
-                const className = JVM.HEAPU8.subarray(classNamePtr, classNamePtr+cname.length);
+                let classNamePtr = JVM._malloc(cname.length + 1);
+                const className = JVM.HEAPU8.subarray(classNamePtr, classNamePtr + cname.length + 1);
 
-                for (let i = 0; i < cname.length; i++) {
+                for (let i = 0; i < (cname.length + 1); i++) {
                     className[i] = 0xFF & (cname.charCodeAt(i) || 0);
-                    className[i + 1] = 0x00;
                 }
 
                 document.querySelector("#stdout_title").innerText = "Output Log: ";

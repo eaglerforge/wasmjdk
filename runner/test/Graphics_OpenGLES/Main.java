@@ -40,6 +40,12 @@ public class Main {
 
             glfwSwapBuffers(window);
             glfwPollEvents();
+
+            try {
+                Thread.sleep(16);
+            } catch (InterruptedException e) {
+
+            }
         }
 
         glfwDestroyWindow(window);
