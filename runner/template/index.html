@@ -199,6 +199,8 @@
             JVM.FS.writeFile("/lib/modules", rt);
             JVM.FS.mkdirTree(`/lib/linux/x86/org/lwjgl/opengles/`);
             JVM.FS.mkdirTree(`/lib/linux/x86/org/lwjgl/opengl/`);
+            JVM.FS.mkdirTree(`/conf/security/`);
+            JVM.FS.writeFile("/conf/security/java.security", new Uint8Array(await (await fetch("java.security")).arrayBuffer()));
 
             const GHOST = new Uint8Array(0); //get java to stfu about missing libraries
             ["libjimage", "libjava", "libnet", "libnio", "libzip",

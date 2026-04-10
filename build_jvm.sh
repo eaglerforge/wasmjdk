@@ -161,8 +161,8 @@ else
       esac
   done
 
-  chmod +x ../sub_jmods.sh
-  ../sub_jmods.sh "$JMOD_TARGETS"
+  chmod +x ../scripts/sub_jmods.sh
+  ../scripts/sub_jmods.sh "$JMOD_TARGETS"
 
   echo "Finalising monolith..."
   cp -r monolith/ ../wasmjdk_build/

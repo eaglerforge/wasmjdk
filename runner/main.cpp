@@ -186,7 +186,7 @@ void* p_run_classfile(void* arg) {
     };
 
     char* name = (char*)arg;
-    std::cout << "Finding class: " << name << std::endl;
+    std::cout << "Finding class: " << name << " (" << strlen(name) << ")" << std::endl;
     jclass cls = env->FindClass(name);
     if (env->ExceptionCheck()) {
         std::cerr << "[JNI ERROR] Could not find class: " << name << std::endl;
