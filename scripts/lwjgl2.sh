@@ -1,3 +1,5 @@
+echo "LWJGL2.x vanilla is currently broken due to requiring X11"
+exit;
 LWJGL="lwjgl"; VER="lwjgl2.9.3"; TARGET="jars"; #legacy version
 
 rm -rf src
@@ -64,7 +66,7 @@ done
 
 rm -r ../classpath
 mkdir ../classpath
-cp dist/lwjgl-*.*.*.zip ../classpath/
+cp dist/lwjgl-2.9.3.zip ../classpath/
 
 
 echo "it is done"

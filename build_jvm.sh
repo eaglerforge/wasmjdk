@@ -1,3 +1,4 @@
+export PROJECT_ROOT_DIRECTORY=$(pwd)
 mkdir -p lwjgl/classpath
 if [ "$RELEASE" = "" ]; then
   RELEASE=$(cat RELEASE)
@@ -17,7 +18,7 @@ EMSTACKDEBUG=0
 EMMETHODLOGS=0
 EMSTATICCALLLOGS=0
 
-SHIMLD=false #use a fake linker that never returns errors
+SHIMLD=true #use a modded linker that fixes some linking issues
 export SOURCE_DATE_EPOCH=315532802
 EMBIN=$(dirname $(which emcc))
 export SHIM_INCLUDES=$(pwd)"/patch_include/";
@@ -43,6 +44,10 @@ export EXTEXE="js"
 export OBJCOPY=true
 export STRIP_SYMBOLS="false"
 AC_BYPASS=$(cat ac_bypass.flags)
+
+
+JDK_TARGETS="java.base" #which native jdk dependencies to add. space-separated
+JMOD_TARGETS="java.base,java.logging,java.xml,jdk.unsupported,java.scripting" #which software jdk dependencies to add. comma-separated
 
 # if still broken, remove libffi to configure, and bypass the error message
 # and instead just manually link to it using LDFLAGS and CFLAGS
@@ -74,7 +79,9 @@ if [ "$1" = "config" ]; then
     --with-build-jdk="$BUILD_JDK" --with-boot-jdk="$BUILD_JDK" \
     AR=$AR STRIP=$STRIP CXX=$CXX CC=$CC NM=$NM ar=$AR strip=$STRIP cxx=$CXX cc=$CC nm=$NM LD=$LD LDCXX=$LD STRIP_SYMBOLS=$STRIP_SYMBOLS
 
-
+  echo ""  >> build/emscripten/spec.gmk
+  echo "# EMPATCH"  >> build/emscripten/spec.gmk
+  echo "EXTRA_MODULES := "$(echo $JMOD_TARGETS | sed 's/,/ /g') >> build/emscripten/spec.gmk
   echo "Patching release flags to bypass autoconf (i hate autoconf)"
   echo "Release Flags: "$(cat ../release.flags)
   sed -i "s|-D__RELEASE_FLAGS_PLACEHOLDER__|$(cat ../release.flags)|g" build/*/spec.gmk
@@ -123,9 +130,6 @@ else
   echo "" > monolith/objs.txt;
   cp -r build/emscripten/jdk/include/* monolith/include/
 
-  
-  JDK_TARGETS="java.base" #which native jdk dependencies to add. space-separated
-  JMOD_TARGETS="java.base,java.logging,java.xml,jdk.unsupported" #which software jdk dependencies to add. comma-separated
 
   for targ in $JDK_TARGETS; do
     find build/emscripten/support/native/$targ -name "*.o" | grep -v "jsig.o" >> monolith/objs.txt

@@ -18,7 +18,7 @@ if [ "$1" = "gl" ]; then
   exit
 fi
 
-TRG=../scripts/lwjgl2.sh
+TRG=../scripts/lwjgl3.sh
 chmod +x $TRG
 $TRG
 
@@ -27,4 +27,6 @@ cd classpath
 unzip -o *.zip
 rm *.zip
 rm *-natives-linux.jar
+mv lwjgl-*/jar/*.jar .
+find . -mindepth 1 -type d -exec rm -rf {} +
 cd ..

@@ -143,22 +143,20 @@
             out.innerText = term;
         }
 
-        async function getJarFile() {
+        async function getJarFiles() {
             return new Promise((resolve, reject) => {
                 const input = document.createElement('input');
                 input.type = 'file';
+                input.multiple = true;
                 input.accept = '.jar';
-                input.onchange = (e) => {
-                    const file = e.target.files[0];
-                    if (!file) {
-                        return resolve(null);
+                input.onchange = async (e) => {
+                    const files = [...e.target.files];
+                    const outArrays = {};
+                    for (const fil of files) {
+                        outArrays[fil.name] = new Uint8Array(await fil.arrayBuffer());
                     }
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        const arrayBuffer = reader.result;
-                        resolve(new Uint8Array(arrayBuffer));
-                    };
-                    reader.readAsArrayBuffer(file);
+                    console.log(outArrays);
+                    resolve(outArrays);
                 };
                 input.oncancel = () => resolve(null);
                 input.click();
@@ -201,6 +199,7 @@
             JVM.FS.mkdirTree(`/lib/linux/x86/org/lwjgl/opengl/`);
             JVM.FS.mkdirTree(`/conf/security/`);
             JVM.FS.writeFile("/conf/security/java.security", new Uint8Array(await (await fetch("java.security")).arrayBuffer()));
+            JVM.FS.writeFile("/lib/tzdb.dat", new Uint8Array(await (await fetch("rt/tzdb.dat")).arrayBuffer()));
 
             const GHOST = new Uint8Array(0); //get java to stfu about missing libraries
             ["libjimage", "libjava", "libnet", "libnio", "libzip",
@@ -244,8 +243,12 @@
                 }
                 let cname = "Main";
                 if (testSelector.value === "CustomJar") {
-                    const MainJar = await getJarFile();
-                    JVM.FS.writeFile("/home/web_user/condiments/Main.jar", MainJar);
+                    const JarBuffers = await getJarFiles();
+                    Object.entries(JarBuffers).forEach(ent => {
+                        JVM.FS.writeFile("/home/web_user/condiments/"+ent[0], ent[1]);
+                        console.log("[FS] Wrote to classpath: " + ent[0]);
+                    });
+                    
                     cname = prompt("Entry class: ", "Main");
                 } else {
                     const MainClass = new Uint8Array(await (await fetch(`compiled_tests/${testSelector.value}.class`)).arrayBuffer());

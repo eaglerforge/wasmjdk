@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-ssize_t sendfile(int out_fd, int in_fd, off_t *offset, size_t count) {
+static ssize_t sendfile(int out_fd, int in_fd, off_t *offset, size_t count) {
     size_t total_sent = 0;
     char buffer[4096];
     ssize_t bytes_read, bytes_written;

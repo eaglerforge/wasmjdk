@@ -20,7 +20,7 @@ typedef uint64_t eventfd_t;
 
 #include <sys/ioctl.h>
 
-int eventfd(unsigned int initval, int flags) {
+static int eventfd(unsigned int initval, int flags) {
     int pipefds[2];
     
     if (pipe(pipefds) != 0) {

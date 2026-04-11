@@ -9,6 +9,7 @@
 #define _FPU_ROUND_NEAR  0x0008
 
 typedef uint32_t fpu_control_t;
+typedef int pid_t;
 
 static inline fpu_control_t _mm_get_fpu_control() {
     return 0;
