@@ -4,8 +4,28 @@ TEMP_DIR="./temp_jmod_fix"
 TARGET_PLATFORM="linux-x86"
 JAVA_VER="25-internal"
 
-rm ../wasmjdk_build/jmod/java.base.jmod
+# START - recreate any missing software-only jmods (no clue why they are missing but who cares frfr)
+IFS=',' read -ra ADDR <<< "$1"
+for i in "${ADDR[@]}"; do
+    echo "Checking jmod: $i"
+    if [ -d "src/"$i"/share" ]; then
+        if [ ! -d "src/"$i"/unix" ]; then
+            if [ ! -f "../wasmjdk_build/jmod/$i.jmod" ]; then
+                echo "Recreating..: "$i
+                jmod create \
+                    --class-path build/emscripten/jdk/modules/$i \
+                    --target-platform linux-x86 \
+                    --module-version "$JAVA_VER" \
+                    ../wasmjdk_build/jmod/$i.jmod
+            fi
+        fi
+    fi
+done
 
+# END
+
+
+rm ../wasmjdk_build/jmod/java.base.jmod
 
 jmod create \
     --class-path "build/emscripten/jdk/modules/java.base" \

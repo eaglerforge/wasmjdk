@@ -18,7 +18,7 @@ EMSTACKDEBUG=0
 EMMETHODLOGS=0
 EMSTATICCALLLOGS=0
 
-SHIMLD=true #use a modded linker that fixes some linking issues
+SHIMLD=false #use a modded linker that fixes some linking issues
 export SOURCE_DATE_EPOCH=315532802
 EMBIN=$(dirname $(which emcc))
 export SHIM_INCLUDES=$(pwd)"/patch_include/";
