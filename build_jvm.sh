@@ -159,7 +159,7 @@ else
     INCLUDE_FLAGS_IMPLICIT=$(find src/$targ/ -name lib* -type d | grep -vE "windows|macosx|aix|_headless" | sed 's/^/-I/')
     INCLUDE_FLAGS_COMMON=$(find src/$targ/ -path "*/native/common" -type d -exec find {} -maxdepth 1 -mindepth 1 -type d \; | grep -vE "windows|macosx|aix" | sed 's/^/-I/')
     #echo $INCLUDE_FLAGS_EXPLICIT" "$INCLUDE_FLAGS_IMPLICIT" "$INCLUDE_FLAGS_COMMON
-    SUBLIBS=$(find src/$targ -name lib* -type d | grep -vE "windows|macosx|aix|_headless")
+    SUBLIBS=$(find src/$targ -type d \( -name "lib*" -o -name "common" \) | grep -vE "windows|macosx|aix|_headless")
     for lib in $SUBLIBS; do
       LIB_BASENAME=$(echo $(basename $lib) | sed 's/lib//')
       if [ ! -f ../wierd_jmod_flags/$LIB_BASENAME.flags ]; then
@@ -176,7 +176,7 @@ else
         INC="-I./"$(echo $(dirname $cfile) | sed "s/$(basename $lib)/common/")
         OBJ_NAME=$targ"_$(basename $cfile .c).o"
         echo "        |-- Compiling: "$OBJ_NAME
-        emcc -c $cfile -o monolith/jmod_objects/$OBJ_NAME -fPIC -I$LIBFFI_BUILD/include -I./monolith/include_extensive -fvisibility=default $INCLUDE_FLAGS_EXPLICIT $INCLUDE_FLAGS_IMPLICIT $INCLUDE_FLAGS_COMMON $INCLUDE_FLAGS_LOCAL $WEIRDFLAGS $INC -I./build/emscripten/support/headers/$targ/ -Wno-parentheses -matomics -mbulk-memory -sSHARED_MEMORY=1 -DX_PLATFORM=2 -DFT2_BUILD_LIBRARY=1
+        emcc -c $cfile -o monolith/jmod_objects/$OBJ_NAME -fPIC -I$LIBFFI_BUILD/include -I./monolith/include_extensive -fvisibility=default $INCLUDE_FLAGS_EXPLICIT $INCLUDE_FLAGS_IMPLICIT $INCLUDE_FLAGS_COMMON $INCLUDE_FLAGS_LOCAL $WEIRDFLAGS $INC -I./build/emscripten/support/headers/$targ/ -Wno-parentheses -matomics -mbulk-memory -sSHARED_MEMORY=1 -DX_PLATFORM=2 -DFT2_BUILD_LIBRARY=1 -D__linux__=1
       done
     done
   done

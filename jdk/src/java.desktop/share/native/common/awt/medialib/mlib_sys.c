@@ -41,23 +41,23 @@
 #if ! defined ( __MEDIALIB_OLD_NAMES )
 #if defined ( __GNUC__ )
 
-  __typeof__ ( __mlib_memmove) mlib_memmove
-    __attribute__ ((weak,alias("__mlib_memmove")));
-  __typeof__ ( __mlib_malloc) mlib_malloc
-    __attribute__ ((weak,alias("__mlib_malloc")));
-  __typeof__ ( __mlib_realloc) mlib_realloc
-    __attribute__ ((weak,alias("__mlib_realloc")));
-  __typeof__ ( __mlib_free) mlib_free
-    __attribute__ ((weak,alias("__mlib_free")));
-  __typeof__ ( __mlib_memset) mlib_memset
-    __attribute__ ((weak,alias("__mlib_memset")));
-  __typeof__ ( __mlib_memcpy) mlib_memcpy
-    __attribute__ ((weak,alias("__mlib_memcpy")));
+  // __typeof__ ( __mlib_memmove) mlib_memmove
+  //   __attribute__ ((weak,alias("__mlib_memmove")));
+  // __typeof__ ( __mlib_malloc) mlib_malloc
+  //   __attribute__ ((weak,alias("__mlib_malloc")));
+  // __typeof__ ( __mlib_realloc) mlib_realloc
+  //   __attribute__ ((weak,alias("__mlib_realloc")));
+  // __typeof__ ( __mlib_free) mlib_free
+  //   __attribute__ ((weak,alias("__mlib_free")));
+  // __typeof__ ( __mlib_memset) mlib_memset
+  //   __attribute__ ((weak,alias("__mlib_memset")));
+  // __typeof__ ( __mlib_memcpy) mlib_memcpy
+  //   __attribute__ ((weak,alias("__mlib_memcpy")));
 
 void __mlib_sincosf (float x, float *s, float *c);
 
-__typeof__ ( __mlib_sincosf) mlib_sincosf
-    __attribute__ ((weak,alias("__mlib_sincosf")));
+// __typeof__ ( __mlib_sincosf) mlib_sincosf
+//     __attribute__ ((weak,alias("__mlib_sincosf")));
 
 #else /* defined ( __GNUC__ ) */
 
