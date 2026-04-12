@@ -108,6 +108,37 @@ static mlibFnS_t sMlibFns[] = {
     {NULL, NULL},
 };
 
+//MLIB_LOOKUP
+typedef mlib_status (*mlib_lookup_func)(mlib_image *, 
+                                        const mlib_image *, 
+                                        const void **);
+
+// MLIB_CONVMxN
+typedef mlib_status (*mlib_conv_mxn_10_func)(mlib_image *,       /* dst */
+                                             const mlib_image *, /* src */
+                                             const void *,       /* kdata */
+                                             mlib_s32,           /* w */
+                                             mlib_s32,           /* h */
+                                             mlib_s32,           /* edge_x */
+                                             mlib_s32,           /* edge_y */
+                                             mlib_s32,           /* scale */
+                                             mlib_s32,           /* cmask */
+                                             mlib_edge);
+// MLIB_AFFINE
+typedef mlib_status (*mlib_affine_func)(mlib_image *, 
+                                        const mlib_image *, 
+                                        const mlib_d64 *, 
+                                        mlib_filter, 
+                                        mlib_edge);
+
+// MLIB_CONVKERNCVT
+typedef mlib_status (*mlib_conv_kernel_cvt_func)(void *, 
+                                                 mlib_s32 *, 
+                                                 const void *, 
+                                                 mlib_s32, 
+                                                 mlib_s32, 
+                                                 mlib_type);
+
 static int s_timeIt = 0;
 static int s_printIt = 0;
 static int s_startOff = 0;
@@ -427,8 +458,9 @@ Java_sun_awt_image_ImagingLib_convolveBI(JNIEnv *env, jobject this,
         return 0;
     }
 
-    if ((*sMlibFns[MLIB_CONVKERNCVT].fptr)(kdata, &scale, dkern, w, h,
-                                    mlib_ImageGetType(src)) != MLIB_SUCCESS) {
+    mlib_conv_kernel_cvt_func conv_kernel_fn = (mlib_conv_kernel_cvt_func)sMlibFns[MLIB_CONVKERNCVT].fptr;
+
+    if (conv_kernel_fn(kdata, &scale, dkern, w, h, mlib_ImageGetType(src)) != MLIB_SUCCESS) {
         freeArray(env, srcImageP, src, sdata, dstImageP, dst, ddata);
         awt_freeParsedImage(srcImageP, TRUE);
         awt_freeParsedImage(dstImageP, TRUE);
@@ -455,9 +487,12 @@ Java_sun_awt_image_ImagingLib_convolveBI(JNIEnv *env, jobject this,
     }
 
     cmask = (1<<src->channels)-1;
-    status = (*sMlibFns[MLIB_CONVMxN].fptr)(dst, src, kdata, w, h,
-                               (w-1)/2, (h-1)/2, scale, cmask,
-                               getMlibEdgeHint(edgeHint));
+    mlib_conv_mxn_10_func conv_fn = (mlib_conv_mxn_10_func)sMlibFns[MLIB_CONVMxN].fptr;
+
+    status = conv_fn(dst, src, kdata, w, h,
+                    (w - 1) / 2, (h - 1) / 2, 
+                    scale, cmask,
+                    getMlibEdgeHint(edgeHint));
 
     if (status != MLIB_SUCCESS) {
         printMedialibError(status);
@@ -674,10 +709,11 @@ Java_sun_awt_image_ImagingLib_convolveRaster(JNIEnv *env, jobject this,
         return 0;
     }
 
-    if ((*sMlibFns[MLIB_CONVKERNCVT].fptr)(kdata, &scale, dkern, w, h,
-                                    mlib_ImageGetType(src)) != MLIB_SUCCESS) {
+    mlib_conv_kernel_cvt_func conv_kernel_fn = (mlib_conv_kernel_cvt_func)sMlibFns[MLIB_CONVKERNCVT].fptr;
+
+    if (conv_kernel_fn(kdata, &scale, dkern, w, h, mlib_ImageGetType(src)) != MLIB_SUCCESS) {
         freeDataArray(env, srcRasterP->jdata, src, sdata,
-                      dstRasterP->jdata, dst, ddata);
+                    dstRasterP->jdata, dst, ddata);
         awt_freeParsedRaster(srcRasterP, TRUE);
         awt_freeParsedRaster(dstRasterP, TRUE);
         free(dkern);
@@ -703,9 +739,12 @@ Java_sun_awt_image_ImagingLib_convolveRaster(JNIEnv *env, jobject this,
     }
 
     cmask = (1<<src->channels)-1;
-    status = (*sMlibFns[MLIB_CONVMxN].fptr)(dst, src, kdata, w, h,
-                               (w-1)/2, (h-1)/2, scale, cmask,
-                               getMlibEdgeHint(edgeHint));
+    mlib_conv_mxn_10_func conv_fn = (mlib_conv_mxn_10_func)sMlibFns[MLIB_CONVMxN].fptr;
+
+    status = conv_fn(dst, src, kdata, w, h,
+                    (w - 1) / 2, (h - 1) / 2, 
+                    scale, cmask,
+                    getMlibEdgeHint(edgeHint));
 
     if (status != MLIB_SUCCESS) {
         printMedialibError(status);
@@ -919,9 +958,11 @@ fprintf(stderr,"Flags   : %d\n",dst->flags);
                mlib_ImageGetWidth(dst)*mlib_ImageGetHeight(dst));
     }
     /* Perform the transformation */
-    if ((status = (*sMlibFns[MLIB_AFFINE].fptr)(dst, src, mtx, filter,
-                                  MLIB_EDGE_SRC_EXTEND) != MLIB_SUCCESS))
-    {
+    mlib_affine_func affine_fn = (mlib_affine_func)sMlibFns[MLIB_AFFINE].fptr;
+
+    status = affine_fn(dst, src, mtx, filter, MLIB_EDGE_SRC_EXTEND);
+
+    if (status != MLIB_SUCCESS) {
         printMedialibError(status);
         freeArray(env, srcImageP, src, sdata, dstImageP, dst, ddata);
         awt_freeParsedImage(srcImageP, TRUE);
@@ -1137,14 +1178,20 @@ fprintf(stderr,"Flags   : %d\n",dst->flags);
     }
 
     /* Perform the transformation */
-    if ((status = (*sMlibFns[MLIB_AFFINE].fptr)(dst, src, mtx, filter,
-                                  MLIB_EDGE_SRC_EXTEND) != MLIB_SUCCESS))
-    {
+    mlib_affine_func affine_fn = (mlib_affine_func)sMlibFns[MLIB_AFFINE].fptr;
+
+    status = affine_fn(dst, src, mtx, filter, MLIB_EDGE_SRC_EXTEND);
+
+    if (status != MLIB_SUCCESS) {
         printMedialibError(status);
-        /* REMIND: Free the regions */
+
+        // IN CASE OF COMPILE FAIL, COMMENT OUT THESE NEXT 3 LINES. (there is a low chance of affine transformation failing anyway)
+        // freeArray(env, srcImageP, src, sdata, dstImageP, dst, ddata);
+        // awt_freeParsedImage(srcImageP, TRUE);
+        // awt_freeParsedImage(dstImageP, TRUE);
+
         return 0;
     }
-
     if (s_printIt) {
         if (sdata == NULL) {
             dP = (unsigned int *) mlib_ImageGetData(src);
@@ -1495,10 +1542,14 @@ Java_sun_awt_image_ImagingLib_lookupByteBI(JNIEnv *env, jobject thisLib,
         }
         /* How about ddata == null? */
     }
-    else if ((status = (*sMlibFns[MLIB_LOOKUP].fptr)(dst, src,
-                                      (void **)tbl) != MLIB_SUCCESS)) {
-        printMedialibError(status);
-        retStatus = 0;
+    else {
+        mlib_lookup_func lookup_fn = (mlib_lookup_func)sMlibFns[MLIB_LOOKUP].fptr;
+        status = lookup_fn(dst, src, (const void **)tbl);
+
+        if (status != MLIB_SUCCESS) {
+            printMedialibError(status);
+            retStatus = 0;
+        }
     }
 
    /* Release the LUT */
@@ -1733,10 +1784,15 @@ Java_sun_awt_image_ImagingLib_lookupByteRaster(JNIEnv *env,
             }
         }
         /* How about ddata == null? */
-    } else if ((status = (*sMlibFns[MLIB_LOOKUP].fptr)(dst, src,
-                                      (void **)mlib_lookupTable) != MLIB_SUCCESS)) {
-        printMedialibError(status);
-        retStatus = 0;
+    } else {
+        mlib_lookup_func lookup_fn = (mlib_lookup_func)sMlibFns[MLIB_LOOKUP].fptr;
+
+        status = lookup_fn(dst, src, (const void **)mlib_lookupTable);
+
+        if (status != MLIB_SUCCESS) {
+            printMedialibError(status);
+            retStatus = 0;
+        }
     }
 
     /* Release the LUT */

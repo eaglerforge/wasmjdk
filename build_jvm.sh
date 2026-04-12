@@ -51,7 +51,7 @@ JDK_TARGETS="java.base"
 #which software jdk dependencies to add. comma-separated
 JMOD_TARGETS="java.base,java.logging,java.xml,jdk.unsupported,java.scripting,java.management,java.security.sasl,java.naming,jdk.charsets,jdk.crypto.ec,java.instrument,jdk.zipfs,java.datatransfer,java.prefs,java.desktop"
 
-JMOD_NATIVE_DEPS="java.instrument java.management java.datatransfer java.desktop"
+JMOD_NATIVE_DEPS="java.instrument java.management java.datatransfer java.prefs java.desktop"
 
 # if still broken, remove libffi to configure, and bypass the error message
 # and instead just manually link to it using LDFLAGS and CFLAGS
@@ -116,9 +116,9 @@ else
     fi;
   fi
   
-  echo "."
-  echo "Ignore the error, it is caused by a validation step in the makefile that cannot handle wasm binaries"
-  echo "."
+  echo "------"
+  echo ">> Ignore the error, it is caused by a validation step in the makefile that cannot handle wasm binaries"
+  echo "------"
 
   rm -rf ../wasmjdk_build/*
   mkdir -p ../wasmjdk_build/lib
@@ -176,7 +176,7 @@ else
         INC="-I./"$(echo $(dirname $cfile) | sed "s/$(basename $lib)/common/")
         OBJ_NAME=$targ"_$(basename $cfile .c).o"
         echo "        |-- Compiling: "$OBJ_NAME
-        emcc -c $cfile -o monolith/jmod_objects/$OBJ_NAME -fPIC -I$LIBFFI_BUILD/include -I./monolith/include_extensive -fvisibility=default $INCLUDE_FLAGS_EXPLICIT $INCLUDE_FLAGS_IMPLICIT $INCLUDE_FLAGS_COMMON $INCLUDE_FLAGS_LOCAL $WEIRDFLAGS $INC -I./build/emscripten/support/headers/$targ/ -Wno-parentheses -matomics -mbulk-memory -sSHARED_MEMORY=1 -DX_PLATFORM=2
+        emcc -c $cfile -o monolith/jmod_objects/$OBJ_NAME -fPIC -I$LIBFFI_BUILD/include -I./monolith/include_extensive -fvisibility=default $INCLUDE_FLAGS_EXPLICIT $INCLUDE_FLAGS_IMPLICIT $INCLUDE_FLAGS_COMMON $INCLUDE_FLAGS_LOCAL $WEIRDFLAGS $INC -I./build/emscripten/support/headers/$targ/ -Wno-parentheses -matomics -mbulk-memory -sSHARED_MEMORY=1 -DX_PLATFORM=2 -DFT2_BUILD_LIBRARY=1
       done
     done
   done

@@ -46,17 +46,20 @@ extern "C" {
 #define __mlib_malloc mlib_malloc
 #endif /* ! defined ( __MEDIALIB_OLD_NAMES ) */
 void * __mlib_malloc(mlib_u32 size);
+#define mlib_malloc __mlib_malloc
 
 #if defined ( __MEDIALIB_OLD_NAMES )
 #define __mlib_realloc mlib_realloc
 #endif /* ! defined ( __MEDIALIB_OLD_NAMES ) */
 void * __mlib_realloc(void *ptr,
                       mlib_u32 size);
+#define mlib_realloc __mlib_realloc
 
 #if defined ( __MEDIALIB_OLD_NAMES )
 #define __mlib_free mlib_free
 #endif /* ! defined ( __MEDIALIB_OLD_NAMES ) */
 void  __mlib_free(void *ptr);
+#define mlib_free __mlib_free
 
 #if defined ( __MEDIALIB_OLD_NAMES )
 #define __mlib_memset mlib_memset
@@ -64,6 +67,7 @@ void  __mlib_free(void *ptr);
 void * __mlib_memset(void *s,
                      mlib_s32 c,
                      mlib_u32 n);
+#define mlib_memset __mlib_memset
 
 #if defined ( __MEDIALIB_OLD_NAMES )
 #define __mlib_memcpy mlib_memcpy
@@ -71,6 +75,7 @@ void * __mlib_memset(void *s,
 void * __mlib_memcpy(void *s1,
                      void *s2,
                      mlib_u32 n);
+#define mlib_memcpy __mlib_memcpy
 
 #if defined ( __MEDIALIB_OLD_NAMES )
 #define __mlib_memmove mlib_memmove
@@ -78,12 +83,14 @@ void * __mlib_memcpy(void *s1,
 void * __mlib_memmove(void *s1,
                       void *s2,
                       mlib_u32 n);
+#define mlib_memmove __mlib_memmove
 
 
 #if defined ( __MEDIALIB_OLD_NAMES )
 #define __mlib_version mlib_version
 #endif /* ! defined ( __MEDIALIB_OLD_NAMES ) */
 char * __mlib_version();
+#define mlib_version __mlib_version
 
 #ifdef __cplusplus
 }
