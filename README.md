@@ -15,8 +15,8 @@
   - Select `linux x64` as the platform, and `minimal opengl es` as the preset
   - In the contents tab, remove `OpenAL` and `Assimp`
   - press download button, save to the `lwjgl/classpath` directory.
-  - the `build_lwjgl.sh` script will handle the rest
-- `./build_lwjgl.sh` (lwjgl + gl4es)
+  - the `build_graphics.sh` script will handle the rest
+- `./build_graphics.sh` (lwjgl + gl4es)
 - `./build_jvm.sh` again, this time it will include lwjgl stuff
 - Finally: `./build_runner.sh`, which will compile everything to a .html file
 
