@@ -1,0 +1,12 @@
+security.provider.1=sun.security.provider.Sun
+security.provider.2=sun.security.rsa.SunRsaSign
+security.provider.3=sun.security.ec.SunEC
+security.provider.4=com.sun.net.ssl.internal.ssl.Provider
+security.provider.5=com.sun.crypto.provider.SunJCE
+security.provider.6=sun.security.jgss.SunProvider
+security.provider.7=com.sun.security.auth.module.Krb5LoginModule
+security.provider.8=sun.security.smartcardio.SunPCSC
+
+keystore.type=pkcs12
+
+jdk.jar.disabledAlgorithms=MD2, MD5, RSA keySize < 1024

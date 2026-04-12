@@ -1645,9 +1645,8 @@ class VM_LinuxDllLoad: public VM_Operation {
 };
 
 void * os::dll_load(const char *filename, char *ebuf, int ebuflen) {
-  printf("[EMDEBUG] Attempting shared library load of %s\n", filename);
+  std::cout << "[EMDEBUG] Attempting shared library load of: " << filename << std::endl;
   void* ptr = dlopen(NULL, RTLD_LAZY); // EMPATCH
-  std::cout << "Local DLOPEN Value: " << ptr << std::endl;
   return ptr;
 
 

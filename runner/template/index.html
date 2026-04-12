@@ -207,7 +207,7 @@
                 "linux/x86/org/lwjgl/opengles/liblwjgl_opengles",
                 "linux/x86/org/lwjgl/opengl/liblwjgl_opengl",
                 "linux/x86/org/lwjgl/liblwjgl",
-                "liblwjgl_opengl"].forEach(lib => {
+                "liblwjgl_opengl", "libmanagement"].forEach(lib => {
                     JVM.FS.writeFile(`/lib/${lib}.so`, GHOST);
                 });
 

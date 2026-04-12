@@ -45,9 +45,13 @@ export OBJCOPY=true
 export STRIP_SYMBOLS="false"
 AC_BYPASS=$(cat ac_bypass.flags)
 
+#which native jdk dependencies to add. space-separated
+JDK_TARGETS="java.base"
 
-JDK_TARGETS="java.base" #which native jdk dependencies to add. space-separated
-JMOD_TARGETS="java.base,java.logging,java.xml,jdk.unsupported,java.scripting" #which software jdk dependencies to add. comma-separated
+#which software jdk dependencies to add. comma-separated
+JMOD_TARGETS="java.base,java.logging,java.xml,jdk.unsupported,java.scripting,java.management,java.security.sasl,java.naming,jdk.charsets,jdk.crypto.ec,java.instrument,jdk.zipfs"
+
+JMOD_NATIVE_DEPS="java.instrument java.management"
 
 # if still broken, remove libffi to configure, and bypass the error message
 # and instead just manually link to it using LDFLAGS and CFLAGS
@@ -104,10 +108,10 @@ else
   if [ "$2" != "skip" ]; then
     if [ "$SHIMLD" = "true" ]; then
       echo "Shimming LD"
-      emmake make -k images emscripten LOG=info LD=$LD LDCXX=$LD
+      #emmake make -k images emscripten LOG=info LD=$LD LDCXX=$LD
     else
       echo "Not shimming LD"
-      emmake make -k images emscripten LOG=info
+      #emmake make -k images emscripten LOG=info
     fi;
   fi
   
@@ -121,24 +125,59 @@ else
   mkdir -p ../wasmjdk_build/jmod
   cp build/emscripten/jdk/lib/zero/libjvm.so ../wasmjdk_build/lib/libjvm.a #plain, solo JVM
 
-
   cp -r build/emscripten/jdk/include/* ../wasmjdk_build/include/
-
 
   mkdir -p monolith
   mkdir -p monolith/include
+  mkdir -p monolith/jmod_objects
+  mkdir -p monolith/jmod_soups
   echo "" > monolith/objs.txt;
   cp -r build/emscripten/jdk/include/* monolith/include/
-
 
   for targ in $JDK_TARGETS; do
     find build/emscripten/support/native/$targ -name "*.o" | grep -v "jsig.o" >> monolith/objs.txt
     echo "Adding to monolithic build: $item"
     cp -r build/emscripten/support/modules_include/$targ/* monolith/include/
   done
+
+  #Extensive Include Directory, use if getting include errors and do lazy to do it properly
+  cp -r monolith/include monolith/include_extensive
+  cp monolith/include/linux/* monolith/include_extensive/
+  #java.base headers
+  cp -r ./src/java.base/share/native/*/*.h monolith/include_extensive/
+  cp -r ./src/java.base/unix/native/*/*.h monolith/include_extensive/
+  #Hotspot Headers
+  cp -r ./src/hotspot/share/include/*.h monolith/include_extensive/
+  cp -r ./src/hotspot/os/posix/include/*.h monolith/include_extensive/
+
+
+  JUMP_POINT=$(pwd)
+  for targ in $JMOD_NATIVE_DEPS; do
+    mkdir -p monolith/jmod_soups/$targ
+    SOUP_CONTENTS=$(find src/$targ/linux/native src/$targ/unix/native src/$targ/share/native -type f )
+    for srcfile in $SOUP_CONTENTS; do
+      cp $srcfile monolith/jmod_soups/$targ/
+    done
+
+    #Extensive Monolith Headers
+    cp -r monolith/include_extensive/* monolith/jmod_soups/$targ/
+
+    #Generated Headers
+    cp -r ./build/emscripten/support/headers/$targ/* monolith/jmod_soups/$targ/
+
+    cd monolith/jmod_soups/$targ
+    NATIVE_SRC_LIBS=$(find . -name "*.c")
+    for cfile in $NATIVE_SRC_LIBS; do
+      emcc -c $cfile -o ../../jmod_objects/$(basename $cfile .c).o -fPIC -I$LIBFFI_BUILD/include -I. -fvisibility=default
+    done
+    cd $JUMP_POINT
+  done
+  rm -r monolith/jmod_soups
   echo "Adding libjvm to monolithic build:"
   find build/emscripten/hotspot/variant-zero/libjvm/objs -name "*.o" | grep -v "jsig.o" >> monolith/objs.txt
 
+  echo "Adding external jmod symbols to monolithic build: "
+  find monolith/jmod_objects/ -name "*.o" >> monolith/objs.txt
   echo "Adding lwjgl symbols to monolithic build: "
   find ../lwjgl/src/object_files/ -name "*.o" >> monolith/objs.txt
   

@@ -8,8 +8,11 @@ JAVA_VER="25-internal"
 IFS=',' read -ra ADDR <<< "$1"
 for i in "${ADDR[@]}"; do
     echo "Checking jmod: $i"
-    if [ -d "src/"$i"/share" ]; then
-        if [ ! -d "src/"$i"/unix" ]; then
+    if [ $i != "java.base" ]; then
+        if [ -d "src/"$i"/share" ]; then
+            if [ -d "src/"$i"/unix" ] || [ -d "src/"$i"/share/native" ] || [ -d "src/"$i"/linux" ]; then
+                echo "WARNING: jmod $i is not entirely cross platform! Please ensure required symbols are included"
+            fi
             if [ ! -f "../wasmjdk_build/jmod/$i.jmod" ]; then
                 echo "Recreating..: "$i
                 jmod create \
