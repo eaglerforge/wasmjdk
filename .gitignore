@@ -9,3 +9,4 @@ lwjgl*.zip
 lwjgl/
 demojars/*
 buildjmod/
+jdk/monolith/

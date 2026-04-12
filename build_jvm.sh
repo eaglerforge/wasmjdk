@@ -49,9 +49,9 @@ AC_BYPASS=$(cat ac_bypass.flags)
 JDK_TARGETS="java.base"
 
 #which software jdk dependencies to add. comma-separated
-JMOD_TARGETS="java.base,java.logging,java.xml,jdk.unsupported,java.scripting,java.management,java.security.sasl,java.naming,jdk.charsets,jdk.crypto.ec,java.instrument,jdk.zipfs"
+JMOD_TARGETS="java.base,java.logging,java.xml,jdk.unsupported,java.scripting,java.management,java.security.sasl,java.naming,jdk.charsets,jdk.crypto.ec,java.instrument,jdk.zipfs,java.datatransfer,java.prefs,java.desktop"
 
-JMOD_NATIVE_DEPS="java.instrument java.management"
+JMOD_NATIVE_DEPS="java.instrument java.management java.datatransfer java.desktop"
 
 # if still broken, remove libffi to configure, and bypass the error message
 # and instead just manually link to it using LDFLAGS and CFLAGS
@@ -105,13 +105,14 @@ else
   echo ""
   sleep 1.5
 
-  if [ "$2" != "skip" ]; then
+  # ./build_jvm.sh skip will only do JMOD logic!
+  if [ "$1" != "skip" ]; then
     if [ "$SHIMLD" = "true" ]; then
       echo "Shimming LD"
-      #emmake make -k images emscripten LOG=info LD=$LD LDCXX=$LD
+      emmake make -k images emscripten LOG=info LD=$LD LDCXX=$LD
     else
       echo "Not shimming LD"
-      #emmake make -k images emscripten LOG=info
+      emmake make -k images emscripten LOG=info
     fi;
   fi
   
@@ -150,29 +151,36 @@ else
   cp -r ./src/hotspot/share/include/*.h monolith/include_extensive/
   cp -r ./src/hotspot/os/posix/include/*.h monolith/include_extensive/
 
-
-  JUMP_POINT=$(pwd)
+  echo "(starting jmod natives compile)"
+  echo ""
   for targ in $JMOD_NATIVE_DEPS; do
-    mkdir -p monolith/jmod_soups/$targ
-    SOUP_CONTENTS=$(find src/$targ/linux/native src/$targ/unix/native src/$targ/share/native -type f )
-    for srcfile in $SOUP_CONTENTS; do
-      cp $srcfile monolith/jmod_soups/$targ/
+    echo "|-- Building: $targ"
+    INCLUDE_FLAGS_EXPLICIT=$(find src/$targ/ -name include -type d | grep -vE "windows|macosx|aix|_headless" | sed 's/^/-I/')
+    INCLUDE_FLAGS_IMPLICIT=$(find src/$targ/ -name lib* -type d | grep -vE "windows|macosx|aix|_headless" | sed 's/^/-I/')
+    INCLUDE_FLAGS_COMMON=$(find src/$targ/ -path "*/native/common" -type d -exec find {} -maxdepth 1 -mindepth 1 -type d \; | grep -vE "windows|macosx|aix" | sed 's/^/-I/')
+    #echo $INCLUDE_FLAGS_EXPLICIT" "$INCLUDE_FLAGS_IMPLICIT" "$INCLUDE_FLAGS_COMMON
+    SUBLIBS=$(find src/$targ -name lib* -type d | grep -vE "windows|macosx|aix|_headless")
+    for lib in $SUBLIBS; do
+      LIB_BASENAME=$(echo $(basename $lib) | sed 's/lib//')
+      if [ ! -f ../wierd_jmod_flags/$LIB_BASENAME.flags ]; then
+        mkdir -p ../weird_jmod_flags/
+        touch ../weird_jmod_flags/$LIB_BASENAME.flags
+      fi
+      WEIRDFLAGS=$(cat ../weird_jmod_flags/$LIB_BASENAME.flags)
+      LIB_BASENAME_MOREBASIC=$(echo $LIB_BASENAME | sed -E "s/_.+//")
+      INCLUDE_FLAGS_LOCAL=$(find $(find ./src/$targ/ -path "*native*" -name "*$LIB_BASENAME_MOREBASIC*" -type d | grep -vE "windows|macosx|aix|_headless") -type d | sed "s/^/-I/")
+      #echo $INCLUDE_FLAGS_LOCAL
+      echo "    |-- Building $LIB_BASENAME for $targ"
+      CFILES=$(find $lib -name "*.c")
+      for cfile in $CFILES; do
+        INC="-I./"$(echo $(dirname $cfile) | sed "s/$(basename $lib)/common/")
+        OBJ_NAME=$targ"_$(basename $cfile .c).o"
+        echo "        |-- Compiling: "$OBJ_NAME
+        emcc -c $cfile -o monolith/jmod_objects/$OBJ_NAME -fPIC -I$LIBFFI_BUILD/include -I./monolith/include_extensive -fvisibility=default $INCLUDE_FLAGS_EXPLICIT $INCLUDE_FLAGS_IMPLICIT $INCLUDE_FLAGS_COMMON $INCLUDE_FLAGS_LOCAL $WEIRDFLAGS $INC -I./build/emscripten/support/headers/$targ/ -Wno-parentheses -matomics -mbulk-memory -sSHARED_MEMORY=1 -DX_PLATFORM=2
+      done
     done
-
-    #Extensive Monolith Headers
-    cp -r monolith/include_extensive/* monolith/jmod_soups/$targ/
-
-    #Generated Headers
-    cp -r ./build/emscripten/support/headers/$targ/* monolith/jmod_soups/$targ/
-
-    cd monolith/jmod_soups/$targ
-    NATIVE_SRC_LIBS=$(find . -name "*.c")
-    for cfile in $NATIVE_SRC_LIBS; do
-      emcc -c $cfile -o ../../jmod_objects/$(basename $cfile .c).o -fPIC -I$LIBFFI_BUILD/include -I. -fvisibility=default
-    done
-    cd $JUMP_POINT
   done
-  rm -r monolith/jmod_soups
+
   echo "Adding libjvm to monolithic build:"
   find build/emscripten/hotspot/variant-zero/libjvm/objs -name "*.o" | grep -v "jsig.o" >> monolith/objs.txt
 

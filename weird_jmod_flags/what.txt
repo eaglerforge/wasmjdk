@@ -1,0 +1,3 @@
+this folder contains files that map to really weird required flags / headerfile includes in certain openjdk jmod libraries (irdk)
+
+working directory = ./jdk
