@@ -48,7 +48,7 @@ class oopDesc {
   friend class VMStructs;
   friend class JVMCIVMStructs;
  private:
-  volatile markWord _mark;
+  alignas(8) volatile markWord _mark;
   union _metadata {
     Klass*      _klass;
     narrowKlass _compressed_klass;

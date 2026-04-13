@@ -57,8 +57,6 @@
 
 #ifndef HEADLESS
 
-typedef XRenderPictFormat *
-XRenderFindVisualFormatFunc (Display *dpy, _Xconst Visual *visual);
 
 typedef struct _AwtGraphicsConfigData  {
     int         awt_depth;

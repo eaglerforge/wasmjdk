@@ -19,6 +19,7 @@
 #include <gl4esinit.h>
 #include <GLFW/glfw3.h>
 #include <GL/gl.h>
+#include <sstream>
 
 extern "C" EMSCRIPTEN_KEEPALIVE void sample_function(JNIEnv* env, jobject unsafe, jobject obj, jlong offset, jobject e_h, jobject x_h) {
     std::cout << "Write Offset: " << offset << std::endl;
@@ -146,8 +147,24 @@ extern "C" {
     }
 }
 
+extern int MinObjAlignmentInBytes;
+int getMinAlignmentBytes() {
+    return MinObjAlignmentInBytes;
+}
+
 EMSCRIPTEN_KEEPALIVE
 void* p_run_classfile(void* arg) {
+    std::vector<std::string> tokens;
+    std::stringstream ss((char*)arg);
+    std::string temp;
+    std::string className;
+
+    if (!(ss >> className)) return nullptr;
+
+    while (ss >> temp) {
+        tokens.push_back(temp);
+    }
+
     initialize_gl4es();
     JavaVM *jvm;
     JNIEnv *env;
@@ -185,7 +202,7 @@ void* p_run_classfile(void* arg) {
         return nullptr;
     };
 
-    char* name = (char*)arg;
+    char* name = (char*)className.c_str();
     std::cout << "Finding class: " << name << " (" << strlen(name) << ")" << std::endl;
     jclass cls = env->FindClass(name);
     if (env->ExceptionCheck()) {
@@ -203,7 +220,12 @@ void* p_run_classfile(void* arg) {
                 env->ExceptionClear();
                 return nullptr;
             }
-            jobjectArray args = env->NewObjectArray(0, env->FindClass("java/lang/String"), nullptr);
+            jobjectArray args = env->NewObjectArray((jsize)tokens.size(), env->FindClass("java/lang/String"), nullptr);
+            for (size_t i = 0; i < tokens.size(); i++) {
+                jstring argString = env->NewStringUTF(tokens[i].c_str());
+                env->SetObjectArrayElement(args, (jsize)i, argString);
+                env->DeleteLocalRef(argString);
+            }
             std::cin.clear();
             env->CallStaticVoidMethod(cls, mid, args);
             if (env->ExceptionCheck()) {

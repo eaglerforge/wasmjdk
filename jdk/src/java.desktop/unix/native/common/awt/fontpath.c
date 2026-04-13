@@ -382,73 +382,12 @@ JNIEXPORT jstring JNICALL Java_sun_awt_FcFontManager_getFontPathNative
 
 #include <dlfcn.h>
 
-#include <fontconfig/fontconfig.h>
-
 
 static void* openFontConfig() {
-
-    char *homeEnv;
-    static char *homeEnvStr = "HOME="; /* must be static */
-    void* libfontconfig = NULL;
-
-    /* Private workaround to not use fontconfig library.
-     * May be useful during testing/debugging
-     */
-    char *useFC = getenv("USE_J2D_FONTCONFIG");
-    if (useFC != NULL && !strcmp(useFC, "no")) {
-        return NULL;
-    }
-
-#if defined(_AIX)
-    /* On AIX, fontconfig is not a standard package supported by IBM.
-     * instead it has to be installed from the "AIX Toolbox for Linux Applications"
-     * site http://www-03.ibm.com/systems/power/software/aix/linux/toolbox/alpha.html
-     * and will be installed under /opt/freeware/lib/libfontconfig.a.
-     * Notice that the archive contains the real 32- and 64-bit shared libraries.
-     * We first try to load 'libfontconfig.so' from the default library path in the
-     * case the user has installed a private version of the library and if that
-     * doesn't succeed, we try the version from /opt/freeware/lib/libfontconfig.a
-     */
-    libfontconfig = dlopen("libfontconfig.so", RTLD_LOCAL|RTLD_LAZY);
-    if (libfontconfig == NULL) {
-        libfontconfig = dlopen("/opt/freeware/lib/libfontconfig.a(libfontconfig.so.1)", RTLD_MEMBER|RTLD_LOCAL|RTLD_LAZY);
-        if (libfontconfig == NULL) {
-            return NULL;
-        }
-    }
-#else
-    /* 64 bit sparc should pick up the right version from the lib path.
-     * New features may be added to libfontconfig, this is expected to
-     * be compatible with old features, but we may need to start
-     * distinguishing the library version, to know whether to expect
-     * certain symbols - and functionality - to be available.
-     * Also add explicit search for .so.1 in case .so symlink doesn't exist.
-     */
-    libfontconfig = dlopen(FONTCONFIG_DLL_VERSIONED, RTLD_LOCAL|RTLD_LAZY);
-    if (libfontconfig == NULL) {
-        libfontconfig = dlopen(FONTCONFIG_DLL, RTLD_LOCAL|RTLD_LAZY);
-        if (libfontconfig == NULL) {
-            return NULL;
-        }
-    }
-#endif
-
-    /* Version 1.0 of libfontconfig crashes if HOME isn't defined in
-     * the environment. This should generally never happen, but we can't
-     * control it, and can't control the version of fontconfig, so iff
-     * its not defined we set it to an empty value which is sufficient
-     * to prevent a crash. I considered unsetting it before exit, but
-     * it doesn't appear to work on Solaris, so I will leave it set.
-     */
-    homeEnv = getenv("HOME");
-    if (homeEnv == NULL) {
-        putenv(homeEnvStr);
-    }
-
-    return libfontconfig;
+    return NULL;
 }
 
-typedef void* (FcFiniFuncType)();
+//typedef void* (FcFiniFuncType)();
 
 static void closeFontConfig(void* libfontconfig, jboolean fcFini) {
 

@@ -7,6 +7,7 @@
 - `git clone --depth=1 https://github.com/eaglerforge/wasmjdk.git`
 - `cd wasmjdk`
 - `chmod +x *.sh`
+- `rm ./libffi/configure`
 - `./build_ffi.sh`
 - `./build_jvm.sh config`
 - `./build_jvm.sh`

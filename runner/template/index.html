@@ -248,11 +248,16 @@
                         JVM.FS.writeFile("/home/web_user/condiments/"+ent[0], ent[1]);
                         console.log("[FS] Wrote to classpath: " + ent[0]);
                     });
-                    
-                    cname = prompt("Entry class: ", "Main");
+                    let defaultVal = localStorage.getItem("lastCallfunc") || "net/minecraft/client/main/Main --accessToken 0 --version 1.13.0 --username ZXMushroom63 --gameDir .";
+                    cname = prompt("Entry class: ", defaultVal);
+                    localStorage.setItem("lastCallfunc", cname);
                 } else {
-                    const MainClass = new Uint8Array(await (await fetch(`compiled_tests/${testSelector.value}.class`)).arrayBuffer());
-                    JVM.FS.writeFile("/home/web_user/classes/Main.class", MainClass);
+                    let url = `compiled_tests/${testSelector.value}.jar`;
+                    if (location.hostname.endsWith("github.io")) {
+                        url = "https://media.githubusercontent.com/media/eaglerforge/wasmjdk/refs/heads/main/docs/" + url;
+                    }
+                    const MainJar = new Uint8Array(await (await fetch(url)).arrayBuffer());
+                    JVM.FS.writeFile("/home/web_user/condiments/Main.jar", MainJar);
                 }
 
                 let classNamePtr = JVM._malloc(cname.length + 1);

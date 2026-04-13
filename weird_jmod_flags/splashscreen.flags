@@ -1,1 +1,1 @@
--I./src/java.base/share/native/libzip/zlib/
+-I./src/java.base/share/native/libzip/zlib/ -I./src/java.desktop/unix/native/common/awt/systemscale/

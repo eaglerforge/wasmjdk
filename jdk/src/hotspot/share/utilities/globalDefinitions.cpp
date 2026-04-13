@@ -46,12 +46,12 @@ JNIEXPORT jboolean UseSharedSpaces = true;
 
 // Object alignment, in units of HeapWords.
 // Defaults are -1 so things will break badly if incorrectly initialized.
-int MinObjAlignment            = -1;
-int MinObjAlignmentInBytes     = -1;
-int MinObjAlignmentInBytesMask = 0;
+int MinObjAlignment            = -1; //2
+int MinObjAlignmentInBytes     = -1; //8
+int MinObjAlignmentInBytesMask = 0; //7
 
-int LogMinObjAlignment         = -1;
-int LogMinObjAlignmentInBytes  = -1;
+int LogMinObjAlignment         = -1; //1
+int LogMinObjAlignmentInBytes  = -1; //3
 
 // Oop encoding heap max
 uint64_t OopEncodingHeapMax = 0;
