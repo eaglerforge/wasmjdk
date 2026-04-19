@@ -15,3 +15,7 @@ libffi/wasm_build/*
 libffi/wasm_build/lib/*
 libffi/wasm_build/lib
 libffi/wasm*-unknown-emscripten
+*.debug.wasm
+jvm.wasm.debug.wasm
+*.wasm.map
+*.js.symbols
