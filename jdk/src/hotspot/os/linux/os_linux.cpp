@@ -4460,7 +4460,7 @@ void os::init(void) {
   check_pax();
 
   // Check the availability of MADV_POPULATE_WRITE.
-  FLAG_SET_DEFAULT(UseMadvPopulateWrite, (::madvise(nullptr, 0, MADV_POPULATE_WRITE) == 0));
+  FLAG_SET_DEFAULT(UseMadvPopulateWrite, false); //EMPATCH
 
   os::Posix::init();
 }

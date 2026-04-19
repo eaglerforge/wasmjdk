@@ -1,6 +1,7 @@
 #include <iostream>
 #include <jni.h>
 #include <stdio.h>
+#include <malloc.h>
 #include <stdlib.h>
 
 #include <jni.h>
@@ -173,8 +174,8 @@ void* p_run_classfile(void* arg) {
     std::cout << "\n[Pthread] Trying to init JVM in a side thread..." << std::endl;
 
     //add java home, upload modules file, fix class path to a root-based path
-    JavaVMOption options[9];
-    vm_args.nOptions = 9;
+    JavaVMOption options[11];
+    vm_args.nOptions = 11;
     std::string cp = build_classpath("/home/web_user/classes", "/home/web_user/condiments");
     std::cout << "Classpath: " << cp << std::endl;
     std::string classpathOpt = "-Djava.class.path=" + cp;
@@ -191,6 +192,8 @@ void* p_run_classfile(void* arg) {
     //options[8].optionString = (char*)"-Dsun.misc.URLClassPath.debug=true";
     //options[9].optionString = (char*)"-Xlog:class+load=info";
     options[8].optionString = (char*)"-Dos.name=Linux"; //just lie
+    options[9].optionString = (char*)"-Xms863m";
+    options[10].optionString = (char*)"-Xmx863m";
 
     vm_args.version = JNI_VERSION_21;
     vm_args.options = options;
@@ -312,3 +315,31 @@ int frametest() {
     //glfwTerminate();
     return 0;
 }
+
+// EMSCRIPTEN_KEEPALIVE
+// void print_memory_stats() {
+//     struct mallinfo i = mallinfo();
+//     printf("Total non-mmapped space: %llu bytes\n", (uint64_t)i.arena);
+//     printf("Total allocated space: %llu bytes\n", (uint64_t)i.uordblks);
+//     printf("Total free space: %llu bytes\n", (uint64_t)i.fordblks);
+// }
+
+EMSCRIPTEN_KEEPALIVE
+void get_ptr_size() {
+    printf("void* size: %d bytes\n", (uint32_t)sizeof(void*));
+    printf("intptr_t size: %d bytes\n", (uint32_t)sizeof(intptr_t));
+}
+
+// extern "C" {
+// EMSCRIPTEN_KEEPALIVE
+// JNIEXPORT void JNICALL Java_Main_GCTESTER_1logMemUsage(JNIEnv* env, jclass clazz) {
+//     struct mallinfo i = mallinfo();
+//     printf("Total allocated space: %llu MB\n", (uint64_t)i.uordblks);
+//     printf("Total free space: %llu MB\n", (uint64_t)i.fordblks);
+// };
+// JNIEXPORT void JNICALL Java_Main_GCTESTER_logMemUsage(JNIEnv* env, jclass clazz) {
+//     struct mallinfo i = mallinfo();
+//     printf("Total allocated space: %llu MB\n", (uint64_t)i.uordblks);
+//     printf("Total free space: %llu MB\n", (uint64_t)i.fordblks);
+// };
+// }

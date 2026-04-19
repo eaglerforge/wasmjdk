@@ -6,5 +6,6 @@ Fibonnaci
 Reflect
 Performance
 Scanner
+RuntimeGC
 HelloWorld
 Graphics_OpenGL_Anim

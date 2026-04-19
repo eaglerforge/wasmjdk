@@ -17,8 +17,8 @@
   - In the contents tab, remove `OpenAL` and `Assimp`
   - press download button, save to the `lwjgl/classpath` directory.
   - the `build_graphics.sh` script will handle the rest
-- `./build_graphics.sh` (lwjgl + gl4es)
-- `./build_jvm.sh` again, this time it will include lwjgl stuff
+- `./build_graphics.sh` (lwjgl + gl4es, you may see some errors, pretend they don't exist)
+- `./build_jvm.sh skip` again, this time it will include lwjgl stuff
 - Finally: `./build_runner.sh`, which will compile everything to a .html file
 
 
@@ -33,6 +33,6 @@
 - `RELEASE`: flag for compiling in debug vs release mode. 0 is debug, 1 is release
 - `patch_include` - headerfiles for shimming unsupported platform features
 - `runner` - the application that is built into the `docs/` directory
-  - `runner/main.cpp` - contains the entry point, and patched for `dlopen` (important if you want to use this for your own causes)
+  - `runner/main.cpp` - contains the entry point, and patched `dlopen` (important if you want to use this for your own causes)
   - `runner/template/` - website template
   - `runner/test/` - contains java programs that are loaded into the website. Simply follow folder structure and you can add pretty much any java program.

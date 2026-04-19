@@ -203,7 +203,7 @@
 
             const GHOST = new Uint8Array(0); //get java to stfu about missing libraries
             ["libjimage", "libjava", "libnet", "libnio", "libzip",
-                "libverify", "libjsig", "liblwjgl", "libglfw", "liblwjgl_opengles",
+                "libverify", "libjsig", "liblwjgl", "libglfw", "liblwjgl_opengles", "libgctester",
                 "linux/x86/org/lwjgl/opengles/liblwjgl_opengles",
                 "linux/x86/org/lwjgl/opengl/liblwjgl_opengl",
                 "linux/x86/org/lwjgl/liblwjgl",
@@ -274,7 +274,7 @@
                 //const stdinBuffer = JVM.HEAPU8.subarray(stdinPtr, stdinPtr + STDIN_SIZE);
                 //const stdinSync = new Int32Array(JVM.HEAPU8.buffer, stdinPtr, 1);
 
-                const stdinPtr = globalThis.stdinPtr = JVM._alloc_fake_stdin();
+                const stdinPtr = globalThis.stdinPtr = Number(JVM._alloc_fake_stdin());
                 const stdinBuf = globalThis.stdinBuf = JVM.HEAPU8.subarray(stdinPtr, stdinPtr + 2048);
 
                 globalThis.EXEC_START_TIME = performance.now();

@@ -26,7 +26,7 @@ EMSTATICCALLLOGS=0
 PROJ_ROOT=$(pwd)
 export SOURCE_DATE_EPOCH=315532802
 EMSTACKSIZE=$((16 * 1024 * 1024))
-MEMMB=2048
+MEMMB=2048 #max is 3456
 EMMEMPG=$((($MEMMB * 1024 * 1024 / 64) * 64))
 EMTHREADPOOL=10
 cd runner
@@ -38,7 +38,7 @@ rm -rf *
 echo $(pwd)
 emcc -Wl,--whole-archive ../lwjgl/gl4es/lib/libGL4ES.a -Wl,--no-whole-archive -I../lwjgl/gl4es/include ../runner/main.cpp -Wl,--wrap=dlopen -Wl,--wrap=dlsym -Wl,--whole-archive ../wasmjdk_build/monolith/libjvm.a -Wl,--no-whole-archive -Wl,--whole-archive -L../libffi/wasm_build/lib/ -lffi -I../libffi/wasm_build/include/ -I../patch_include/ -pthread -I../wasmjdk_build/monolith/include/ -I../wasmjdk_build/monolith/include/linux/ -o jvm.js $(cat ../export.flags) -sINVOKE_RUN=0 -fdebug-compilation-dir='.' --emit-symbol-map --profiling-funcs -fstandalone-debug -pthread -sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -Wl,--error-limit=0 -ferror-limit=0 -sSEPARATE_DWARF_URL="jvm.wasm.debug.wasm" \
  -sMODULARIZE=1 -sEXPORT_NAME='initJVM' \
- -sERROR_ON_UNDEFINED_SYMBOLS=0 -sALLOW_MEMORY_GROWTH=1 -sMAIN_MODULE -sRELOCATABLE=1 -sEXPORT_ALL=1 -sLINKABLE=1 -Wl,--export-dynamic -Wl,--allow-multiple-definition -sINITIAL_MEMORY=$EMMEMPG -sMAXIMUM_MEMORY=$EMMEMPG \
+ -sERROR_ON_UNDEFINED_SYMBOLS=0 -sALLOW_MEMORY_GROWTH=0 -sMAIN_MODULE -sRELOCATABLE=1 -sEXPORT_ALL=1 -sLINKABLE=1 -Wl,--export-dynamic -Wl,--allow-multiple-definition -sINITIAL_MEMORY=$EMMEMPG -sMAXIMUM_MEMORY=$EMMEMPG \
  -sSTACK_SIZE=$EMSTACKSIZE -sDEFAULT_PTHREAD_STACK_SIZE=$EMSTACKSIZE -sWASM_BIGINT=1 -sSTACK_OVERFLOW_CHECK=1 -sPTHREAD_POOL_SIZE=$EMTHREADPOOL -sPTHREAD_POOL_SIZE_STRICT=2 \
  -sFILESYSTEM=1 $OPT_FLAGS $(cat $PROJ_ROOT/opengles.flags)  -sPROXY_TO_PTHREAD=1 -sJSPI -sOFFSCREEN_FRAMEBUFFER=1 -sOFFSCREENCANVAS_SUPPORT=1 \
  -lopenal -D__EMSCRIPTEN__=1
@@ -88,6 +88,7 @@ rm classpath/*-natives-linux.jar 2> /dev/null
 mv $RUNNER_ROOT/HelloWorld.jar classpath/
 
 sed -i "s|'jvm.wasm'|JVM_LOC|g" jvm.js
+sed -i 's|"jvm.wasm"|JVM_LOC|g' jvm.js
 touch $MODE_NAME
 mkdir -p rt
 cp ../wasmjdk_build/runtime/release rt/rt.info

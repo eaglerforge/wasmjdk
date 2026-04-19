@@ -17,7 +17,7 @@ for i in "${ADDR[@]}"; do
                 echo "Recreating..: "$i
                 jmod create \
                     --class-path build/emscripten/jdk/modules/$i \
-                    --target-platform linux-x86 \
+                    --target-platform "$TARGET_PLATFORM" \
                     --module-version "$JAVA_VER" \
                     ../wasmjdk_build/jmod/$i.jmod
             fi
@@ -32,7 +32,7 @@ rm ../wasmjdk_build/jmod/java.base.jmod
 
 jmod create \
     --class-path "build/emscripten/jdk/modules/java.base" \
-    --target-platform linux-x86 \
+    --target-platform "$TARGET_PLATFORM" \
     --module-version "$JAVA_VER" \
     "../wasmjdk_build/jmod/java.base.jmod"
 

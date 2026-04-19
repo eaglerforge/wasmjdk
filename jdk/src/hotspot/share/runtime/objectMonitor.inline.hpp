@@ -40,6 +40,9 @@
 #include "utilities/checkedCast.hpp"
 #include "utilities/globalDefinitions.hpp"
 
+#include <cstdint>
+#include <iostream>
+
 inline int64_t ObjectMonitor::owner_id_from(JavaThread* thread) {
   return thread->monitor_owner_id();
 }
@@ -113,6 +116,11 @@ inline int64_t ObjectMonitor::owner() const {
 }
 
 inline int64_t ObjectMonitor::owner_raw() const {
+  const volatile int64_t* owner_ptr = &_owner;
+  //EMFIX
+  if ((size_t)owner_ptr % (size_t)sizeof(int64_t) != (size_t)0) {
+    std::cout << "Bah humbug!! That darned POINTER is misaligned!!: " << ((size_t)owner_ptr % (size_t)sizeof(int64_t*)) << std::endl;
+  }
   return Atomic::load(&_owner);
 }
 

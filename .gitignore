@@ -10,3 +10,8 @@ lwjgl/
 demojars/*
 buildjmod/
 jdk/monolith/
+libffi/wasm_build
+libffi/wasm_build/*
+libffi/wasm_build/lib/*
+libffi/wasm_build/lib
+libffi/wasm*-unknown-emscripten

@@ -35,7 +35,7 @@ export AR=$EMTOOLCHAIN"/emar"
 export STRIP=true
 export NM=$EMTOOLCHAIN"/emnm"
 export INCL="-I"$SHIM_INCLUDES" -I"$LIBFFI_BUILD"/include ";
-export CFLAGS=" -sJSPI -sWASM_BIGINT=1 -DVM_LITTLE_ENDIAN -DEMSTATICCALLLOGS=$EMSTATICCALLLOGS -DEMSTACKDEBUG=$EMSTACKDEBUG -DEMMETHODLOGS=$EMMETHODLOGS -sMAIN_MODULE=1 -sRELOCATABLE=1 -sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -pthread -fPIC -fno-direct-access-external-data -fvisibility=default -Wno-macro-redefined -Wno-undef -Wno-format -Wno-format-security -Wno-unused -Wno-unused-private-field -Wno-missing-braces -Wno-unused-function -Wno-bitwise-instead-of-logical -Wno-deprecated-declarations -Wno-unused-command-line-argument -sMAIN_MODULE=1 -sRELOCATABLE=1 -DSTATIC_BUILD=1 "$INCL" "$OPT_FLAGS
+export CFLAGS=" -sJSPI -sWASM_BIGINT=1 -DVM_LITTLE_ENDIAN -DEMSTATICCALLLOGS=$EMSTATICCALLLOGS -DEMSTACKDEBUG=$EMSTACKDEBUG -DEMMETHODLOGS=$EMMETHODLOGS -sMAIN_MODULE=1 -sRELOCATABLE=1 -sUSE_PTHREADS=1 -sSHARED_MEMORY=1 -pthread -fPIC -fno-direct-access-external-data -fvisibility=default -Wno-macro-redefined -Wno-undef -Wno-format -Wno-format-security -Wno-unused -Wno-unused-private-field -Wno-missing-braces -Wno-unused-function -Wno-bitwise-instead-of-logical -Wno-deprecated-declarations -Wno-unused-command-line-argument -sMAIN_MODULE=1 -sRELOCATABLE=1 -DSTATIC_BUILD=1 -matomics -mbulk-memory "$INCL" "$OPT_FLAGS
 export CXXFLAGS=$CFLAGS" "
 export LDFLAGS="-sRELOCATABLE=1 -Wno-unused-command-line-argument -sMAIN_MODULE=1 -fPIC -fvisibility=default -sERROR_ON_UNDEFINED_SYMBOLS=0 "$EXPOSE" --no-entry "
 export PRECOMPILED_HEADERS_AVAILABLE=false
@@ -51,7 +51,7 @@ JDK_TARGETS="java.base"
 #which software jdk dependencies to add. comma-separated
 JMOD_TARGETS="java.base,java.logging,java.xml,jdk.unsupported,java.scripting,java.management,java.security.sasl,java.naming,jdk.charsets,jdk.crypto.ec,java.instrument,jdk.zipfs,java.datatransfer,java.prefs,java.desktop,java.transaction.xa,java.sql"
 
-JMOD_NATIVE_DEPS="java.instrument java.management java.datatransfer java.prefs"
+JMOD_NATIVE_DEPS="java.instrument java.management java.datatransfer java.prefs" #intentionally exclude java.desktop
 
 # if still broken, remove libffi to configure, and bypass the error message
 # and instead just manually link to it using LDFLAGS and CFLAGS

@@ -25,7 +25,7 @@ ant -Dtarget=linux -Dlocal.arch=x86_64 \
     -Dbin.gcc=$EMCC -Dbin.g++=$EMCPP -Dbin.linker=$EMCC -Ddebug=true \
     $TARGET release
 
-export CFLAGS="-DLWJGL_LINUX=1 -DLWJGL_WASM=1 -Wno-unused-command-line-argument -isystem ../../patch_include/system_override -fvisibility=default -sEXPORT_ALL -fPIC -sRELOCATABLE"
+export CFLAGS="-matomics -mbulk-memory -DLWJGL_LINUX=1 -DLWJGL_WASM=1 -Wno-unused-command-line-argument -isystem ../../patch_include/system_override -fvisibility=default -sEXPORT_ALL -fPIC -sRELOCATABLE"
 
 TARGETS="glfw opengles core opengl egl openal"
 #INC=$(find . -name "*.h" -exec dirname {} + | sort -u | sed 's/^/-I/')
